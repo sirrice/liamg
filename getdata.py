@@ -18,7 +18,7 @@ def download_headers(imap_hostname, user, xoauth_string, conn):
     """
     connect to gmail and download all headrs since jan-2011
     
-    select query strings:
+    select gmail label:
      INBOX
      [Gmail]/All Mail
      [Gmail]/Sent Mail
@@ -29,12 +29,15 @@ def download_headers(imap_hostname, user, xoauth_string, conn):
      (SUBJECT "atwoods")
      (SINCE 01-Jan-2011)
     """
+    label_string = "[Gmail]/All Mail"
+    search_string = "(ALL)"
+
     
     imap_conn = imaplib.IMAP4_SSL(imap_hostname)
     imap_conn.debug = 0
     imap_conn.authenticate('XOAUTH', lambda x: xoauth_string)
-    imap_conn.select('[Gmail]/All Mail')
-    typ, dat = imap_conn.search(None, '(ALL)')
+    imap_conn.select(label_string)
+    typ, dat = imap_conn.search(None, search_string)
     iternum = 0
     chunk = 1000.0
 
