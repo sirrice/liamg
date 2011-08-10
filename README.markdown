@@ -9,6 +9,26 @@ This requires the following modules, which should be in `modules/`
  - matplotlib
  - sqlite3
  - dateutil
+ - numpy
+
+You can install numpy on ubuntu using
+
+    sudo apt-get install python-numpy
+
+
+For example, you can install dateutil using the following
+
+    cd `modules`
+    tar -xf python-dateutil-1.5.tar.gz
+    cd python-dateutil-1.5
+    sudo python setup.py install
+
+This should install it in `$PYTHONHOME/site-packages/`
+To check that it works do
+
+    python
+    >>> import dateutil    
+
 
 Getting started
 ------------
