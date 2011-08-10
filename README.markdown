@@ -10,7 +10,8 @@ Requires
 Getting started
 ------------
 
-Get oauth tokens and secret
+Run the following script, follow the instructions and copy down the token
+and secret.
 
 	sh gen_tokens.sh <username@gmail.com>
 
