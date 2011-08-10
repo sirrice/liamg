@@ -4,8 +4,11 @@ a tool that plots a histogram of the number of emails exchanged with friends.
 Requires
 --------
  
+This requires the following modules, which should be in `modules/`
+
  - matplotlib
  - sqlite3
+ - dateutil
 
 Getting started
 ------------
