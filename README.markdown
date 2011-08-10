@@ -12,7 +12,7 @@ Getting started
 
 Get oauth tokens and secret
 
-	sh gen_tokens.sh
+	sh gen_tokens.sh <username@gmail.com>
 
 Add tokens into settings.py
 
