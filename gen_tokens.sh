@@ -7,6 +7,6 @@ then
 fi
 
 
-python xoauth.py --gen_oauth_token --user=$1
+python xoauth.py --generate_oauth_token --user=$1
 
 echo "copy the token and secret value into settings.py"
