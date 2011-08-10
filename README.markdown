@@ -4,10 +4,9 @@ a tool that plots a histogram of the number of emails exchanged with friends.
 Requires
 --------
  
-This requires the following modules, which should be in `modules/`
+This requires the following modules:
 
  - matplotlib
- - sqlite3
  - dateutil
  - numpy
 
@@ -16,10 +15,11 @@ You can install numpy and matplotlib on ubuntu using
     sudo apt-get install python-numpy
     sudo apt-get install python-matplotlib
 
-Otherwise, you can download and install it from 
+Otherwise, you can download and install numpy from 
 
     http://new.scipy.org/download.html
 
+For the other packages, they are included in `modules/`.  
 For example, you can install dateutil using the following
 
     cd `modules`
