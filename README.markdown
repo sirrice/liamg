@@ -16,6 +16,10 @@ You can install numpy and matplotlib on ubuntu using
     sudo apt-get install python-numpy
     sudo apt-get install python-matplotlib
 
+Otherwise, you can download and install it from 
+
+    http://new.scipy.org/download.html
+
 For example, you can install dateutil using the following
 
     cd `modules`
