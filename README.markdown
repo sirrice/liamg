@@ -11,10 +11,10 @@ This requires the following modules, which should be in `modules/`
  - dateutil
  - numpy
 
-You can install numpy on ubuntu using
+You can install numpy and matplotlib on ubuntu using 
 
     sudo apt-get install python-numpy
-
+    sudo apt-get install python-matplotlib
 
 For example, you can install dateutil using the following
 
