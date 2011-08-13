@@ -29,10 +29,51 @@ class ContactForm(forms.Form):
     recipients = forms.EmailField()
     cc_myself = forms.BooleanField(required=False)
 
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=100)
+    password = forms.CharField(max_length=100)
 
 # index view
 def index(request):
+    if request.user.is_autheticated():
+        print 'user kewl'
+    else:
+        return HttpResponseRedirect(reverse('emailanalysis.views.login_view'))
+#        return HttpResponseRedirect('emailanalysis/login')
     return render_to_response('emailanalysis/index.html')
+
+# log in view
+def login_view(request):
+
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+
+            user = authenticate(username=username,password=password)
+            if user is not None:
+                if user.is_active:
+                    login(request,user)
+                    return HttpResponseRedirect('/login successful/') # Redirect after POST
+                else:
+                    return HttpResponseRedirect('/user not recognized/') # Redirect after POST
+            
+            return HttpResponse('mail sent')
+
+    else:
+        form = LoginForm()
+        c = {}
+        c.update(csrf(request))
+
+        return render_to_response('emailanalysis/sendmail.html', {
+            'form': form,
+            },context_instance=RequestContext(request))
+
+
+# log out user
+def logout_view(request):
+    logout(request)
 
 # get json data
 def getjson(request, datatype):
