@@ -7,15 +7,6 @@ from datetime import timedelta
 import json
 
 import re
-inputarg = 10
-
-if len(sys.argv) == 4:
-    inputarg = sys.argv[1]
-    start = sys.argv[2]
-    end = sys.argv[3]
-else:
-    sys.stderr.write("Not valid argmuents")
-    exit(1)
 
 
 def get_top_senders(num, startdate, enddate):
@@ -50,7 +41,20 @@ def get_top_senders(num, startdate, enddate):
     
     print obj
     return obj
-#get_top_senders(10, start, end)
+
+
+
+if __name__ == "__main__":
+    inputarg = 10
+    if len(sys.argv) == 4:
+        inputarg = sys.argv[1]
+        start = sys.argv[2]
+        end = sys.argv[3]
+    else:
+        sys.stderr.write("Not valid argmuents")
+        exit(1)
+
+    get_top_senders(10, start, end)
 
 #obj = dict()
 
