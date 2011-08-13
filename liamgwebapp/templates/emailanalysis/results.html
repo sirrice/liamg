@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>inbox.dr | results</title>
+<link rel="shortcut icon" href="../favicon.png" /> 
+<link rel="stylesheet" type="text/css" href="" />
+<style type="text/css">
+@font-face {
+    font-family: 'nevisBold';
+    src: url('font/nevis-webfont.eot');
+    src: url('font/nevis-webfont.eot?#iefix') format('embedded-opentype'),
+         url('font/nevis-webfont.woff') format('woff'),
+         url('font/nevis-webfont.ttf') format('truetype'),
+         url('font/nevis-webfont.svg#nevisBold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+	}
+body {
+	width:900px;
+	margin-left:auto;
+	margin-right:auto;
+	background:url('bg.jpg') repeat-x;
+	font-family:Verdana;
+	font-size:12px;
+	}
+#logo {
+	margin-top:25px;
+	text-decoration:none;
+	}
+#dashboard {
+	float:left;
+	width:190px;
+	height:100%;
+	border:2px #B5B7B9 solid;
+	border-radius:15px;
+	-moz-border-radius:15px;
+	-webkit-box-shadow: 5px 5px 1px #B5B7B9;
+	box-shadow: 5px 5px 1px #B5B7B9;
+}
+#results {
+	padding:5px;
+	margin:0 0 5px 30px;
+	float:left;
+	width:640px;
+	height:100%;
+	border:2px #B5B7B9 solid;
+	border-radius:15px;
+	-moz-border-radius:15px;
+	-webkit-box-shadow: 5px 5px 1px #B5B7B9;
+	box-shadow: 5px 5px 1px #B5B7B9;
+}
+ul {
+	margin-left:-25px;
+	list-style:none;
+}
+.category {
+	padding-left:15px;
+	font-family:nevisBold;
+	font-size:24px;
+	border-radius:10px 10px 0 0;
+	-moz-border-radius:15px;
+	color:#FFFFFF;
+	background:#28AAE1;
+}
+.description {
+	margin-bottom: 10px;
+</style>
+
+<!--GRAPH CODE-->
+
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.js"></script>
+<script type="text/javascript">
+      google.load('visualization', '1', {packages: ['corechart']});
+    </script>
+<script type="text/javascript">
+    function byHour(){
+    	$.getJSON("http://192.168.201.237:8000/emailanalysis/byhour/json/", {start:"2010-9-20", end:"2011-3-10", daysofweek:"0,6"}, function(data){
+    		drawVisualization(data);
+    	});
+    };
+    function initVisualization(){
+     	$.getJSON("http://192.168.201.237:8000/emailanalysis/topsenders/json/",{},function(data){
+    		 drawVisualization(data);
+/*     		$.each(data, function(i,item) {
+    		 
+    		alert(item);
+    		 
+    		}); */
+    	}); 
+    };
+/*         $.ajax({
+      	  url: 'http://192.168.201.237:8000/emailanalysis/example/json/',
+      	  type: 'POST',
+      	  dataType: 'json',//this is important
+      	  success: function(result) {
+      	    //this is not vital, but it's nice to check the response
+      	    if(typeof result === "object" && result.status === "ok"){
+      	        graphData = result;
+      	        drawVisualization();
+      	    }
+      	  }
+      	}); */
+   // }
+      function drawVisualization(jsonOutput) {
+        // Create and populate the data table.
+
+         var jsonOutput = {"y": [25.0, 18.0, 17.0, 16.0, 18.0, 11.0, 10.0, 4.0, 7.0, 4.0, 4.0, 12.0, 11.0, 21.0, 39.0, 33.0, 44.0, 53.0, 72.0, 57.0, 58.0, 34.0, 31.0, 33.0],
+				"labels": ["2000-01-01 00:00:00", "2000-01-01 01:00:00", "2000-01-01 02:00:00", "2000-01-01 03:00:00", "2000-01-01 04:00:00", "2000-01-01 05:00:00", "2000-01-01 06:00:00", "2000-01-01 07:00:00", "2000-01-01 08:00:00", "2000-01-01 09:00:00", "2000-01-01 10:00:00", "2000-01-01 11:00:00", "2000-01-01 12:00:00", "2000-01-01 13:00:00", "2000-01-01 14:00:00", "2000-01-01 15:00:00", "2000-01-01 16:00:00", "2000-01-01 17:00:00", "2000-01-01 18:00:00", "2000-01-01 19:00:00", "2000-01-01 20:00:00", "2000-01-01 21:00:00", "2000-01-01 22:00:00", "2000-01-01 23:00:00"]};
+         
+         
+         //var jsonOutput = {[304, 257, 160, 125, 87, 71, 70, 68, 67, 64, 59, 57, 55, 54, 53, 48, 47, 41, 38], ["sirrice@gmail.com", "shwang08@gmail.com", "tiffchen08@gmail.com", "farm.cp@gmail.com", "yunjiema@gmail.com", "karenshu@gmail.com", "brett.warne@gmail.com", "winkler.em@gmail.com", "niv.chandra@gmail.com", "ravdawg@gmail.com", "melty710@gmail.com", "irenefan@gmail.com", "jen.lee.ing@gmail.com", "wysun07@gmail.com", "wenfai@gmail.com", "shi.jiarui@gmail.com", "jtaschereau84@gmail.com", "hkorre@gmail.com", "jlee08@gmail.com"]};
+        var data = new google.visualization.DataTable(jsonOutput);
+/*         var xLabels = jsonOutput[0];
+        var values = jsonOutput[1]; */
+        //data.addRows(xLabels.length);
+        
+        var xLabels = jsonOutput.labels;
+        var values = jsonOutput.y;
+        data.addColumn('string', 'date');
+        data.addColumn('number', 'emails');
+        for(var i=0; i<xLabels.length;i++){
+        	data.addRow([xLabels[i], values[i]]);
+        }
+        
+        // Create and draw the visualization.
+		 new google.visualization.ColumnChart(document.getElementById('visualization')).
+            draw(data,
+                 {title:"Eugene's Emails in 2011", 
+                  width:630, height:200,
+                  hAxis: {title: "Year"}}
+            ); 
+      }
+      
+
+      google.setOnLoadCallback(drawVisualization);
+    </script>
+	
+<!--END GRAPH CRAP-->
+
+</head>
+	
+<body>
+<div id="logo">
+	<a href=""><img src="logo-sm.png" /></a>
+</div>
+<div id="dashboard">
+	<ul>
+	<li>General Stats</li>
+	<li>Response Time</li>
+		<ul>
+		<li>Sending Overall</li>
+		<li>Sending by Person</li>
+		<li>Receiving by Person</li>
+		</ul>
+	</ul>
+	
+</div>
+<div id="results">
+	<div class="category" id="general">General Stats</div>
+		     <div id="visualization"></div>
+		<div class="description">This shows the average number of emails you send over time. Higher number = more emails sent. </div>
+	<div class="category" id="re_overall">Personal Response Time</div>
+		<!--INSERTGRAPH--><img src="" width="500px" height="300px" alt="graph here"/>
+		<div class="description">peepeeppee
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
