@@ -19,6 +19,7 @@ def get_sent_histogram(conn, name):
         for row in res:
             d = parse(row[0])
             d = d - timedelta(days=d.weekday())
+            ndays = d - datetime(d.year, 1, 1) 
             count = row[1]
             if len(ret) and ret[-1][0] == d:
                 ret[-1][1] += count
