@@ -7,6 +7,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.core.mail import send_mail
+from django.core.context_processors import csrf
 import json
 
 # append db dir to python path
@@ -33,6 +34,8 @@ def getjson(request, datatype):
     # db call to get data
     if datatype == 'topsenders':
         data = topsenders.get_top_senders(int(20))
+    else:
+        return HttpResponse('json call not recognized')
 
     # return data as json
     return HttpResponse(json.dumps(data), mimetype="application/json")
@@ -47,7 +50,7 @@ def sendmail(request):
             sender = form.cleaned_data['sender']
             cc_myself = form.cleaned_data['cc_myself']
 
-            recipients = form.cleaned_data['recipients']
+            recipients = [form.cleaned_data['recipients']]
             if cc_myself:
                 recipients.append(sender)
 
@@ -61,7 +64,9 @@ def sendmail(request):
 
     else:
         form = ContactForm()
+        c = {}
+        c.update(csrf(request))
 
-    return render_to_response('emailanalysis/sendmail.html', {
+        return render_to_response('emailanalysis/sendmail.html', {
             'form': form,
-            })
+            },context_instance=RequestContext(request))

@@ -8,6 +8,7 @@ urlpatterns = patterns('emailanalysis.views',
     (r'^$', 'index'),
     (r'^(?P<datatype>[\w]+)/json/$', 'getjson'),
     (r'^sendmail/$', 'sendmail'),
+    (r'^sendmail/send/$', 'sendmail'),
     # Examples:
     # url(r'^$', 'liamgwebapp.views.home', name='home'),
     # url(r'^liamgwebapp/', include('liamgwebapp.foo.urls')),
