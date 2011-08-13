@@ -5,9 +5,9 @@ from django.conf.urls.defaults import patterns, include, url
 # admin.autodiscover()
 
 urlpatterns = patterns('emailanalysis.views',
-    (r'^$', 'index'),
-    (r'^(?P<datatype>[\w]+)/json/$', 'getjson'),
-    (r'^sendmail/$', 'sendmail'),
+                       (r'^$', 'index'),
+                       (r'^(?P<datatype>[\w]+)/json/$', 'getjson'),
+                       (r'^sendmail/$', 'sendmail'),
     # Examples:
     # url(r'^$', 'liamgwebapp.views.home', name='home'),
     # url(r'^liamgwebapp/', include('liamgwebapp.foo.urls')),
