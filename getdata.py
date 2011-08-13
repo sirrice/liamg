@@ -71,7 +71,8 @@ def proc_msg(conn, d):
         subj = e.get('Subject', '')
         date = clean_date(e['Date'])
         mid = extract_refs(e.get('Message-ID', ''))[0]
-        replyto = e.get('In-Reply-To', None)
+        replyto = extract_refs(e.get('In-Reply-To', ''))
+        replyto = replyto and replyto[0] or None
         # References are all message IDs of parents in the reply tree
         refs = extract_refs(e.get('References',''))
         add_msg(conn, fr[0], subj, date, mid, replyto, multipart, to, cc, bcc, refs)
