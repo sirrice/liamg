@@ -41,7 +41,7 @@ def getjson(request, datatype):
         start = req.get('start', None)
         end = req.get('end', None)
         daysofweek = req.get('daysofweek', '')
-        lat = req.get('lat', False)
+        lat = bool(req.get('lat', False))
 
         if start: start = parse(start)
         if end: end = parse(end)
