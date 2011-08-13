@@ -38,13 +38,13 @@ def get_top_senders(num):
 
 
 
-obj = dict()
+#obj = dict()
 
-myemails, mynumbers = get_top_senders(int(inputarg))
+#myemails, mynumbers = get_top_senders(int(inputarg))
 
-obj["x"] = myemails
-obj["y"] = mynumbers
+#obj["x"] = myemails
+#obj["y"] = mynumbers
 
-print json.dumps(obj)
+#print json.dumps(obj)
 
 

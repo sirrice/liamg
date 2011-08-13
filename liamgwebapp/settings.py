@@ -146,3 +146,11 @@ LOGGING = {
         },
     }
 }
+
+
+# stuff for sending email
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'inbox.doctor@gmail.com'
+EMAIL_HOST_PASSWORD = 'nycstartupweekendrocks'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
