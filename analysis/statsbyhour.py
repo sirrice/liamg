@@ -51,8 +51,12 @@ class LineData(object):
 
         maxy = max([max(avgs) for name, avgs in data.items() if name != 'labels'])
         maxstars = 40
+
+        names = data.keys()
+        names.sort()
         
-        for name, avgs in data.items():
+        for name in names:
+            avgs = data[name]
             if name == 'labels': continue
             print name
             print "=============="
@@ -70,7 +74,7 @@ class LineData(object):
 
                 nstars = int(20 * y / maxy)
                     
-                print label.rjust(6), '*' * nstars
+                print label.rjust(9), '*' * nstars
 
             print
             print "enter to continue or 'x' to exit"
@@ -88,7 +92,7 @@ class RepliesByHour(object):
         if end:
             WHERE.append("datetime(sentdate) < datetime('%s')" % end.strftime('%Y-%m-%d'))
         if daysofweek:
-            WHERE.append("strftime('%w', sentdate) in []" % (map(lambda x: "'%s'" % x, daysofweek)))
+            WHERE.append("strftime('%%w', sentdate) in (%s)" % ','.join(map(lambda x: "'%s'" % x, daysofweek)))
         if reply is None:
             WHERE.append("(me.id = l.replyuid or me.id = l.senduid)")
         elif reply:
@@ -110,7 +114,7 @@ class RepliesByHour(object):
 
 
 class EveryoneByHour(object):
-    def get_sql(self, lat=True, start=None, end = None, daysofweek = None, name="eugene"):
+    def get_sql(self, lat=True, start=None, end = None, daysofweek = None):
         WHERE = []
         WHERE.append("l.lat < 1")
         if start:
@@ -118,7 +122,8 @@ class EveryoneByHour(object):
         if end:
             WHERE.append("datetime(sentdate) < datetime('%s')" % end.strftime('%Y-%m-%d'))
         if daysofweek:
-            WHERE.append("strftime('%w', sentdate) in []" % (map(lambda x: "'%s'" % x, daysofweek)))
+            WHERE.append("strftime('%%w', sentdate) in (%s)" % (','.join(map(lambda x: "'%s'" % x, daysofweek))))
+            print WHERE[-1]
 
         if lat:
             SELECT = "avg(lat) as avglat, strftime('%H', sentdate) as hour"#, CAST(strftime('%M', sentdate)/60 as integer) as minute"
@@ -141,7 +146,7 @@ class AllByHour(object):
         if end:
             WHERE.append("datetime(sentdate) < datetime('%s')" % end.strftime('%Y-%m-%d'))
         if daysofweek:
-            WHERE.append("strftime('%w', sentdate) in []" % (map(lambda x: "'%s'" % x, daysofweek)))
+            WHERE.append("strftime('%w', sentdate) in (%s)" % (map(lambda x: "'%s'" % x, daysofweek)))
 
         if lat:
             SELECT = "avg(lat) as avglat, strftime('%H', sentdate) as hour"#, CAST(strftime('%M', sentdate)/60 as integer) as minute"
