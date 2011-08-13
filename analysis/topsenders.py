@@ -17,7 +17,6 @@ def get_top_senders(num, startdate, enddate):
         emailStr = "and (email like " + " or email like ".join(email_list) + ")"
         dateStr = "and date >= '" + startdate + "' and date < '" + enddate + "'"
         execCode = 'select email, count(*) as c from msgs, contacts where msgs.fr = contacts.id %s %s group by email order by c desc limit %d;' % (emailStr, dateStr, num)
-        print execCode
         res = c.execute(execCode)
         res.fetchone()
         res = res.fetchall()
@@ -36,7 +35,7 @@ def get_top_senders(num, startdate, enddate):
         print "%35s %9s %s" % (item[0], item[1], "*"*int(length))
    
     obj = dict()
-    obj["x"] = emails 
+    obj["labels"] = emails 
     obj["y"] = numbers
     
     print obj

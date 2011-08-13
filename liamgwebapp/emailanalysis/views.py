@@ -12,11 +12,12 @@ from django.contrib.auth.models import User
 from django.core.context_processors import csrf
 
 from dateutil.parser import parse
-
+import datetime #need to get today's date as the default
 import json
 
 # append db dir to python path
 sys.path.append(os.path.join(os.getcwd(), "../analysis"))
+print sys.path
 
 import topsenders
 from statsbyhour import EveryoneByHour, LineData
@@ -77,10 +78,15 @@ def logout_view(request):
 
 # get json data
 def getjson(request, datatype):
-
     # db call to get data
     if datatype == 'topsenders':
-        data = topsenders.get_top_senders(int(20))
+        
+        req = request.REQUEST
+        start = req.get('start', None)
+        end = req.get ('end', None)
+        top = 10       
+        data = topsenders.get_top_senders(top, start, end)
+        
 
     elif datatype == "byhour":
         req = request.REQUEST
