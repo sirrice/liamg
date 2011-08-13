@@ -1,68 +1,9 @@
 from dateutil.parser import parse
 from datetime import timedelta, datetime, time, date
 import sqlite3, math
-#import numpy as np
 import sys
 
 
-class Scatter(object):
-    def proc_rows(self, res):
-        return map(tuple, map(lambda row: map(float, row), res))
-
-
-    def get_data(self, queries):
-        conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
-
-        cur = conn.cursor()
-        colors = ['r-', 'b-', 'o-', 'y-', 'g-']
-
-        data = {}
-        labels = []
-
-        i = 0
-        for title, sql in queries:
-
-            res = cur.execute(sql)
-            res = self.proc_rows(res)
-
-            points = []
-            d = {}
-            for val, hour in res:
-                d[hour] = val
-
-            for hour in xrange(24):
-                if hour in d:
-                    points.append(d[hour])
-                else:
-                    points.append(0)
-                    
-            xs = [datetime(2000, 1, 1, hour) for hour in xrange(24)]                    
-
-            data[title] = points
-            if not labels :
-                labels = map(str, xs)
-
-        cur.close()
-        data['labels'] = labels
-        return data
-        
-    def viz(self, data):
-        xs = data['labels']
-
-        maxy = max([max(avgs) for name, avgs in data.items() if name != 'labels'])
-        for name, avgs in data.items():
-            if name == 'labels': continue
-            print name
-            plt.cla()        
-            plt.clf()
-            xs = [x for x in xrange(len(xs))]
-
-            plt.scatter(xs, avgs, c='r')
-            plt.show()
-            plt.draw()
-            if 'x' in sys.stdin.readline():
-                break
-        
 
 class LineData(object):
 
@@ -109,17 +50,30 @@ class LineData(object):
         xs = data['labels']
 
         maxy = max([max(avgs) for name, avgs in data.items() if name != 'labels'])
+        maxstars = 40
+        
         for name, avgs in data.items():
             if name == 'labels': continue
             print name
-            plt.cla()        
-            plt.clf()
-            xs = [x for x in xrange(len(xs))]
+            print "=============="
 
-            plt.bar(xs, avgs, width=1)#colors[0])
-            plt.ylim(0, int(maxy * 1.2))#max(50, max(avgs) + 10))
-            plt.show()
-            plt.draw()
+            for x, y in zip(xs, avgs):
+                hour = parse(x).hour
+                if hour == 0:
+                    label = "Midnight"
+                elif hour< 12:
+                    label = "%s AM" % hour
+                elif hour == 12:
+                    label = "Noon"
+                else:
+                    label = "%d PM" % (hour - 12)
+
+                nstars = int(20 * y / maxy)
+                    
+                print label.rjust(6), '*' * nstars
+
+            print
+            print "enter to continue or 'x' to exit"
             if 'x' in sys.stdin.readline():
                 break
             
@@ -204,9 +158,7 @@ class AllByHour(object):
 
 
 if __name__ == '__main__':
-#    import matplotlib.pyplot as plt
     import json
-#    plt.ion()
 
     genqs = EveryoneByHour()
     queries = []
@@ -218,9 +170,9 @@ if __name__ == '__main__':
         #queries.append(('Count 2011 %d' % month, stats.get_sql(lat=False, reply=None, start=start, end = end)))
         queries.append(('Count 2011 %d' % month, genqs.get_sql(lat=True, start=start, end = end)))
 
-    foo = Scatter()
+    foo = LineData()
     data = foo.get_data(queries)
-#    foo.viz(data)
+    foo.viz(data)
     print json.dumps(data)
         
         
