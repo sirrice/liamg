@@ -6,14 +6,17 @@
 <script type="text/javascript" src="/media/js/jquery.js"></script>
 <script type="text/javascript" src="/media/js/jquery-ui.js"></script>
 <script type="text/javascript" src="/media/js/base.js"></script>
+<script type="text/javascript" src="/media/jQRangeSlider/jQRangeSlider.js"></script>
+<script type="text/javascript" src="/media/jQRangeSlider/jQDateRangeSlider.js"></script>
 
 <script type="text/javascript" charset="utf-8">
 
-        $(document).ready(function() { 
+
+ $(document).ready(function() { 
    
-        $.getJSON("http://localhost:8000/emailanalysis/contacts/json/", 
+        $.getJSON("/emailanalysis/contacts/json/", 
         function(data) {
-			make_autocomplete("tags", data);
+				make_autocomplete("tags", data);
 			});
 		});
 
@@ -21,6 +24,8 @@
 <title>Facelist</title>
 </head>
 <body>
+	
+	
 
 <input class="maininput" id="tags" type="text" style="width:500px" />
 

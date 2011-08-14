@@ -11,13 +11,18 @@ urlpatterns = patterns('emailanalysis.views',
     (r'^sendmail/$', 'sendmail'),
     (r'^sendmail/send/$', 'sendmail'),
     (r'^test/$', direct_to_template, {'template': 'emailanalysis/testautocomplete.html'}),
+    (r'^testdate/$', direct_to_template, {'template': 'emailanalysis/testdateslider.html'}),
+    (r'^dash/$', direct_to_template, {'template': 'emailanalysis/dashboard.html'}),                       
+    (r'^home/$', 'index'),
+
                        
     (r'^login/submit/$', 'login_view'),
     (r'^login/$', 'login_view'),
     (r'^logout/$', 'logout_view'),
     (r'^createuser/$', 'create_user'),
     (r'^createuser/submit/$', 'create_user'),
-    (r'^results/$', 'results'),                       
+    (r'^results/$', 'results'),
+    (r'^pie/$', 'pie'),                                              
 
     # Examples:
     # url(r'^$', 'liamgwebapp.views.home', name='home'),
