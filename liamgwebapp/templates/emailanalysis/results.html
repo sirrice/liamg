@@ -64,8 +64,8 @@ function init() {
     $.getJSON("/emailanalysis/contacts/json/", function(data) {
 			make_autocomplete("contacts_list", data);
 		});
-	chartsData = {'hourChart' : setupChart('hourChart', "# emails/hour"),
-				'latencyChart' : setupChart('latencyChart', "avg # hours before reply")}
+	chartsData = {'hourChart' : setupChart('hourChart', "# Emails"),
+				'latencyChart' : setupChart('latencyChart', "Avg hours before reply")}
 	//filterByEmail();
 	getTopSendersList("foo");
 	
