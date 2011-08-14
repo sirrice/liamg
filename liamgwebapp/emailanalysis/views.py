@@ -95,8 +95,20 @@ def login_view(request):
             defaultdb = form.cleaned_data['defaultdb']
             if defaultdb:
                 # log in as default
-                user = authenticate(username='default@default.com',password='default')
+                username = "default@default.com"
+                user = authenticate(username=username,password='default')
+                if not user:
+                    user = User.objects.create_user(username, username, "default")
+                    user = authenticate(username=username,password='default')
+
+                    userdb = Userdbs(username=username)
+                    userdb.save() # creates userdb.id
+                    dbname = 'mail.db'
+                    userdb.dbname = dbname
+                    userdb.save()
+                    
                 login(request,user)
+                return HttpResponseRedirect("/emailanalysis/results/")
                 return HttpResponse('logged in as default: using mail.db')
             else:
                 username = form.cleaned_data['username']
@@ -115,6 +127,7 @@ def login_view(request):
                     if user.is_active:
                         login(request,user)
                         # should redirect user to the results page
+                        return HttpResponseRedirect("/emailanalysis/results/")
                         return HttpResponse('login successful') # Return success
                     else:
                         return HttpResponse('user not recognized') # Return fail
@@ -219,6 +232,7 @@ def getjson(request, datatype):
     elif datatype == "byhour":
         ebh = RepliesByHour()
         queries = []
+        print "EMAIL", email
         queries.append(('y', ebh.get_sql(lat=lat, reply=reply, start=start, end=end,
                                          daysofweek=daysofweek, email=email)))
         ld = LineData()
