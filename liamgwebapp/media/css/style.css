@@ -1,3 +1,6 @@
+@import url(http://fonts.googleapis.com/css?family=Carme);
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:300);
+
 @font-face {
     font-family: 'nevisBold';
     src: url('/media/font/nevis-webfont.eot');
@@ -15,7 +18,7 @@ body {
 	margin-left:auto;
 	margin-right:auto;
 	background:url('/media/images/bg.jpg') repeat-x;
-	font-family:Verdana;
+	font-family:open sans, Verdana;
 	font-size:12px;
 	}
 #logo {
@@ -29,12 +32,15 @@ body {
 	float:left;
 	width:190px;
 	height:100%;
-	padding-right: 10px;
+	padding: 10px;
 	border:2px #B5B7B9 solid;
 	border-radius:15px;
-	-moz-border-radius:15px;
+	-moz-border-radius:15px;/*
 	-webkit-box-shadow: 5px 5px 1px #B5B7B9;
-	box-shadow: 5px 5px 1px #B5B7B9;
+	box-shadow: 5px 5px 1px #B5B7B9;*/
+}
+#dashboard h1{
+	font-size: 12pt;
 }
 #results {
 	padding:5px;
@@ -57,6 +63,7 @@ li {
 	padding-bottom:5px;
 	}
 .category {
+	padding: 10px;
 	padding-left:15px;
 	font-family:nevisBold;
 	font-size:24px;

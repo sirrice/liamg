@@ -11,8 +11,9 @@ function setupChart(name, title) {
    chart.chart = new google.visualization.ColumnChart(document.getElementById(name));
 	chart.options = {width:625, height:200,
 					hAxis: {showTextEvery: 6}, 
-					vAxis: {title: title},
-					legend: "none"};
+					vAxis: {title: title, titleTextStyle: {fontName: "verdana", fontStyle: "none", fontSize: 13}},
+					legend: "none",
+					chartArea: {left:70,top:20,width:"90%",height:"70%"}};
 	chart.chart.draw(chart.data, chart.options);	
 	return chart;
 }
