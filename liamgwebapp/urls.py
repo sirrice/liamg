@@ -7,7 +7,7 @@ from django.conf import settings
 
 urlpatterns = patterns(    '',
     (r'^emailanalysis/', include('emailanalysis.urls')),
-    (r'^media/(?P<path>.*)$', 'django.views.static.serve',  {'document_root': settings.MEDIA_ROOT })
+    (r'^media/(?P<path>.*)$', 'django.views.static.serve',  {'document_root': settings.MEDIA_ROOT }),
      # Examples:
     (r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
 
