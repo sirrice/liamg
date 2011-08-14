@@ -36,7 +36,7 @@ class LineData(object):
                 else:
                     vals.append(0)
                 
-            xs = [datetime(2000, 1, 1, hour) for hour in xrange(24)]
+            xs = [self.itos(hour) for hour in xrange(24)]
             data[title] = vals
 
             if not labels :
@@ -45,6 +45,18 @@ class LineData(object):
         cur.close()
         data['labels'] = labels
         return data
+
+    def itos(self, hour):
+        if hour == 0:
+            label = "Midnight"
+        elif hour< 12:
+            label = "%s AM" % hour
+        elif hour == 12:
+            label = "Noon"
+        else:
+            label = "%d PM" % (hour - 12)
+        return label
+        
 
     def viz(self, data):
         xs = data['labels']
@@ -61,16 +73,7 @@ class LineData(object):
             print name
             print "=============="
 
-            for x, y in zip(xs, avgs):
-                hour = parse(x).hour
-                if hour == 0:
-                    label = "Midnight"
-                elif hour< 12:
-                    label = "%s AM" % hour
-                elif hour == 12:
-                    label = "Noon"
-                else:
-                    label = "%d PM" % (hour - 12)
+            for label, y in zip(xs, avgs):
 
                 nstars = int(20 * y / maxy)
                     
@@ -80,7 +83,10 @@ class LineData(object):
             print "enter to continue or 'x' to exit"
             if 'x' in sys.stdin.readline():
                 break
-            
+
+
+
+select distinct m.id from msgs m, contacts c, tos t where t.msg = m.id and (c.id = m.fr or  (t.msg = m.id and c.id = t.cid)) and c.email like '%zhenya%';
 
 
 class RepliesByHour(object):

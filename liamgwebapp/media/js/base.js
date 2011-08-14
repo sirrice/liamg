@@ -45,3 +45,40 @@ function make_autocomplete(id, data) {
 			}
 		});
 }
+
+
+
+
+
+
+
+
+
+
+
+
+	function updateValuesChanging(event, ui){
+		displayValues(ui.label, ui.values)
+	}
+	
+	function updateValuesChanged(event, ui) {
+		values = ui.values;
+		start = $.datepicker.formatDate("yy-mm-dd", values.min)
+		end = $.datepicker.formatDate("yy-mm-dd", values.max);
+		byHour(start, end)
+	}
+	
+	function displayValues(slider, values){
+  		//slider.parents("form").find("input[name=min]").val($.datepicker.formatDate("yy-mm-dd", values.min));
+	  	//slider.parents("form").find("input[name=max]").val($.datepicker.formatDate("yy-mm-dd", values.max));
+	  
+	}
+	
+	function makeDateSlider(selector, options){
+		var slider = $(selector)
+			.dateRangeSlider(options)
+			.bind("valuesChanging", function(event, ui){updateValuesChanging(event, ui);})
+			.bind("valuesChanged", function(event, ui){updateValuesChanged(event, ui);})
+			.addClass("ui-rangeSlider-dev");
+		displayValues(slider, slider.rangeSlider("values"));
+	}
