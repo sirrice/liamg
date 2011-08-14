@@ -88,10 +88,11 @@ body {
 		<img src="/media/images/logo-sm.png" />
 	</div>
 	<div id="login">
-	<form method="" action="">
+	<form action="/emailanalysis/login/submit/" method="post">{% csrf_token %}
 		<div class="field">
-			Gmail Username: <input type="text" id="username" name="username" size="25" style="font-size:18px;"/><br />
-			Gmail Password: <input type="password" id="password" name="password" size="25" style="font-size:18px;" /><br />
+			Gmail Username: {{form.username}}<br />
+			Gmail Password: {{form.password}}<br />
+			Use Default?: {{form.defaultdb}}<br />
 		</div>
 		<p>
 		<div id="clickme">

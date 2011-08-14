@@ -47,8 +47,8 @@ class ContactForm(forms.Form):
     cc_myself = forms.BooleanField(required=False)
 
 class LoginForm(forms.Form):
-    username = forms.CharField(max_length=100)
-    password = forms.CharField(widget=forms.PasswordInput(render_value=False),max_length=100)
+    username = forms.CharField(widget=forms.TextInput(attrs={'size':'25','style':'font-size:18px'}),max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput(render_value=False, attrs={'size':'25','style':'font-size:18px'}),max_length=100)
     defaultdb = forms.NullBooleanField()
 
 class CreateUserForm(forms.Form):
@@ -57,26 +57,15 @@ class CreateUserForm(forms.Form):
     password = forms.CharField(max_length=100)
 
 # index view
+# redirects to login if not logged in
+# otherwise, shows results
+@login_required(login_url='/emailanalysis/login/')
 def index(request):
-
-    return HttpResponseRedirect(reverse('emailanalysis.views.login_view'))
-
-#    try:
-#        getdata.download_headers('imap.googlemail.com','zhenya.gu@gmail.com','',conn)
-#    except:
-#        return HttpResponse('user/password combo invalid')
-
-#    if request.user.is_authenticated():
-#        return HttpResponseRedirect(reverse('emailanalysis.views.results'))
-#        return render_to_response('emailanalysis/index.html')
-#    else:
-#        return HttpResponseRedirect(reverse('emailanalysis.views.login_view'))
-#        return HttpResponseRedirect('emailanalysis/login')
-#    return render_to_response('emailanalysis/index.html')
+    # if logged in, redirect to results view
+    return HttpResponseRedirect(reverse('emailanalysis.views.results'))
 
 @login_required(login_url='/emailanalysis/login/')
 def results(request):
-    print 'user {0}'.format(request.user)
     return render_to_response('emailanalysis/results.html',context_instance=RequestContext(request))
 
 
@@ -84,12 +73,10 @@ def pie(request):
     return render_to_response('emailanalysis/pie.html',context_instance=RequestContext(request))
 
 # log in view
-
 def login_view(request):
 
     if request.method == 'POST':
         form = LoginForm(request.POST)
-
 
         if form.is_valid():
             defaultdb = form.cleaned_data['defaultdb']
@@ -97,6 +84,8 @@ def login_view(request):
                 # log in as default
                 username = "default@default.com"
                 user = authenticate(username=username,password='default')
+
+                # create default user if it doesn't exist
                 if not user:
                     user = User.objects.create_user(username, username, "default")
                     user = authenticate(username=username,password='default')
@@ -109,7 +98,7 @@ def login_view(request):
                     
                 login(request,user)
                 return HttpResponseRedirect("/emailanalysis/results/")
-                return HttpResponse('logged in as default: using mail.db')
+
             else:
                 username = form.cleaned_data['username']
                 password = form.cleaned_data['password']
@@ -128,7 +117,7 @@ def login_view(request):
                         login(request,user)
                         # should redirect user to the results page
                         return HttpResponseRedirect("/emailanalysis/results/")
-                        return HttpResponse('login successful') # Return success
+
                     else:
                         return HttpResponse('user not recognized') # Return fail
                 # user doesn't exist: create user
@@ -160,7 +149,7 @@ def login_view(request):
         c = {}
         c.update(csrf(request))
 
-        return render_to_response('emailanalysis/login.html', {
+        return render_to_response('emailanalysis/home.html', {
             'form': form,
             },context_instance=RequestContext(request))
 
