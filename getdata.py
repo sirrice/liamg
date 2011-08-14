@@ -14,7 +14,7 @@ contacts_pat = '(([\"\']?(?P<realname>\w[\w\ ]*)[\"\']?)?\s+)?<?(?P<email>[\w.]+
 contacts_prog = re.compile(contacts_pat)
 
 
-def download_headers(imap_hostname, user, xoauth_string, conn):
+def download_headers(imap_hostname, user, passw, conn):
     """
     connect to gmail and download all headrs since jan-2011
     
@@ -35,7 +35,9 @@ def download_headers(imap_hostname, user, xoauth_string, conn):
     
     imap_conn = imaplib.IMAP4_SSL(imap_hostname)
     imap_conn.debug = 0
-    imap_conn.authenticate('XOAUTH', lambda x: xoauth_string)
+    #imap_conn.authenticate('XOAUTH', lambda x: xoauth_string) not going to use oauthentication
+
+    imap_conn.login(user, passw)
     imap_conn.select(label_string)
     typ, dat = imap_conn.search(None, search_string)
     iternum = 0
@@ -224,7 +226,7 @@ def setup_db(conn):
 
 if __name__ == '__main__':
     from settings import *
-
+    import getpass
     conn = sqlite3.connect('./mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
     setup_db(conn)
     
@@ -232,5 +234,10 @@ if __name__ == '__main__':
     access_token = OAuthEntity(token, secret)
     xoauth_string = GenerateXOauthString(consumer, access_token, gmailaddr, 'imap',
                                          None, None, None)
-    download_headers('imap.googlemail.com', gmailaddr, xoauth_string, conn)
+
+    user = getpass.getpass("Username: ")
+    print user
+    passw = getpass.getpass("Password: ")
+#    download_headers('imap.googlemail.com', gmailaddr, xoauth_string, conn)
+    download_headers('imap.googlemail.com',user, passw, conn)
     conn.close()

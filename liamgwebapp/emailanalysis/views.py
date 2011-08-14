@@ -1,7 +1,9 @@
 # Create your views here.
 
-# import django modules
+# import python libraries
 import sys,os
+
+# import django modules
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -10,18 +12,23 @@ from django.core.mail import send_mail
 from django.core.mail import EmailMessage
 from django.contrib.auth.models import User
 from django.core.context_processors import csrf
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django import forms
 
+# import modules for processing data
 from dateutil.parser import parse
 import datetime #need to get today's date as the default
 import json
 
-# append db dir to python path
+# add path for analysis scripts
 sys.path.append(os.path.join(os.getcwd(), "../analysis"))
-print sys.path
 
+# import analysis modules
 import topsenders
 from statsbyhour import EveryoneByHour, LineData
-from django import forms
+from timeline import *
+from contacts import Contacts
 
 class ContactForm(forms.Form):
     subject = forms.CharField(max_length=100)
@@ -32,22 +39,31 @@ class ContactForm(forms.Form):
 
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput(render_value=False),max_length=100)
+
+class CreateUserForm(forms.Form):
+    username = forms.CharField(max_length=100)
+    email = forms.EmailField()
     password = forms.CharField(max_length=100)
 
 # index view
 def index(request):
-    if request.user.is_autheticated():
-        print 'user kewl'
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(reverse('emailanalysis.views.results'))
+#        return render_to_response('emailanalysis/index.html')
     else:
         return HttpResponseRedirect(reverse('emailanalysis.views.login_view'))
 #        return HttpResponseRedirect('emailanalysis/login')
     return render_to_response('emailanalysis/index.html')
 
+def results(request):
+    return render_to_response('emailanalysis/results.html',context_instance=RequestContext(request))
+
 # log in view
 def login_view(request):
 
     if request.method == 'POST':
-        form = ContactForm(request.POST)
+        form = LoginForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
@@ -56,28 +72,72 @@ def login_view(request):
             if user is not None:
                 if user.is_active:
                     login(request,user)
-                    return HttpResponseRedirect('/login successful/') # Redirect after POST
-                else:
-                    return HttpResponseRedirect('/user not recognized/') # Redirect after POST
-            
-            return HttpResponse('mail sent')
+                    return HttpResponse('login successful') # Return success
 
+                else:
+                    return HttpResponse('user not recognized') # Return fail
+            return HttpResponse('user does not exist')
+        else:
+            return HttpResponse('form invalid')
     else:
         form = LoginForm()
         c = {}
         c.update(csrf(request))
 
-        return render_to_response('emailanalysis/sendmail.html', {
+        return render_to_response('emailanalysis/login.html', {
             'form': form,
             },context_instance=RequestContext(request))
 
+# create new user
+def create_user(request):
+
+    if request.method == 'POST':
+        form = CreateUserForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+
+            # create user
+            user = User.objects.create_user(username,email,password)
+
+            return HttpResponse('user created')
+        else:
+            return HttpResponse('form invalid')
+    else:
+        form = CreateUserForm()
+        c = {}
+        c.update(csrf(request))
+
+        return render_to_response('emailanalysis/newuser.html', {
+            'form': form,
+            },context_instance=RequestContext(request))
+    
 
 # log out user
 def logout_view(request):
     logout(request)
+    return HttpResponse('user logged out')
 
 # get json data
+@login_required(login_url='/emailanalysis/login/')
 def getjson(request, datatype):
+    req = request.REQUEST
+
+    start = req.get('start', None)
+    end = req.get('end', None)
+    daysofweek = req.get('daysofweek', '')
+    reply = req.get('reply', None)
+    lat = bool(req.get('lat', False))
+    email = req.get('email', None)
+    granularity = req.get('granularity', None)
+
+    if start: start = parse(start)
+    if end: end = parse(end)
+    if daysofweek: daysofweek = daysofweek.split(",")
+    if reply is not None: reply = bool(reply)
+
+    
     # db call to get data
     if datatype == 'topsenders':
         
@@ -89,22 +149,30 @@ def getjson(request, datatype):
         
 
     elif datatype == "byhour":
-        req = request.REQUEST
-
-        start = req.get('start', None)
-        end = req.get('end', None)
-        daysofweek = req.get('daysofweek', '')
-        lat = bool(req.get('lat', False))
-
-        if start: start = parse(start)
-        if end: end = parse(end)
-        if daysofweek: daysofweek = daysofweek.split(",")
-
         ebh = EveryoneByHour()
         queries = []
         queries.append(('y', ebh.get_sql(lat, start, end, daysofweek)))
         ld = LineData()
         data = ld.get_data(queries)
+
+    elif datatype == "contacts":
+        contacts = Contacts()
+        data = contacts.get_data()
+
+    elif datatype == "getlatency":
+        bd = ByDay()
+        queries = []
+        queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
+                                        granularity=granularity, email=email)))
+        ld = BDLineData()
+        data = ld.get_data(queries, 0, granularity=granularity)
+    elif datatype == "getcount":
+        bd = ByDay()
+        queries = []
+        queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
+                                        granularity=granularity, email=email)))
+        ld = BDLineData()
+        data = ld.get_data(queries, 1, granularity=granularity)
 
     else:
         return HttpResponse('json call not recognized')
@@ -112,7 +180,7 @@ def getjson(request, datatype):
     # return data as json
     return HttpResponse(json.dumps(data), mimetype="application/json")
 
-
+@login_required
 def sendmail(request):
 
     if request.method == 'POST':
