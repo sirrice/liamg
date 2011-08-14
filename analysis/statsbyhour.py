@@ -10,8 +10,8 @@ class LineData(object):
     def proc_rows(self, res):
         return map(tuple, map(lambda row: map(float, row), res))
 
-    def get_data(self, queries):
-        conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
+    def get_data(self, queries, conn):
+#        conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
 
         cur = conn.cursor()
 
@@ -155,7 +155,8 @@ if __name__ == '__main__':
         queries.append(('Count 2011 %d' % month, genqs.get_sql(lat=True, start=start, end = end)))
 
     foo = LineData()
-    data = foo.get_data(queries)
+    conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
+    data = foo.get_data(queries, conn)
     foo.viz(data)
     print json.dumps(data)
         
