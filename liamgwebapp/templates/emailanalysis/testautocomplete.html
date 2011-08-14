@@ -11,26 +11,6 @@
 
 <script type="text/javascript" charset="utf-8">
 
-// default constructor
-$("#element").dateRangeSlider();
-
-// Equivalent to
-$("#element").dateRangeSlider({
-  defaultValues:{min:new Date(2010,1,111), max:new Date(2011,1,11)},
-  bounds:{min:new Date(2010,0,1), max:new Date(2012,0,1)},
-  wheelMode: null,
-  wheelSpeed: 8,
-  arrows: true,
-  valueLabels: "show",
-  formatter: function(value){
-    var month = value.getMonth() + 1;
-    var day = value.getDate();
-    return "" + value.getFullYear() + "-" + (month < 10 ? "0" + month : month) + "-" + (day < 10 ? "0" + day : day);
-  },
-  durationIn: 0,
-  durationOut: 400,
-  delayOut: 200
-});
 
  $(document).ready(function() { 
    

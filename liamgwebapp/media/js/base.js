@@ -1,7 +1,4 @@
 
-
-
-
 	
 function setupChart(name, title) {
 	var chart = {};
@@ -33,6 +30,7 @@ function drawChart(data, chart) {
     chart.chart.draw(chart.data, chart.options);
 
 }
+
 
 
 
@@ -125,6 +123,7 @@ function make_autocomplete(id, data) {
 			},
 			select: function( event, ui ) {
 				return;
+
 				var terms = split( this.value );
 				// remove the current input
 				terms.pop();

@@ -33,12 +33,14 @@ def get_top_senders(num, startdate, enddate, conn):
         numbers.append(item[1])
     for item in res:
         length = float(item[1]) / float(total) * 100
+
         print "%35s %9s %s" % (item[0], item[1], "*"*int(length))
    
     obj = dict()
     obj["labels"] = emails 
     obj["y"] = numbers
     
+
     print obj
     return obj
 
