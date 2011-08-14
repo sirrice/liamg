@@ -20,7 +20,7 @@ body {
 	width:900px;
 	margin-left:auto;
 	margin-right:auto;
-	background:url('bg.jpg') repeat-x;
+	background:url('{{MEDIA_URL}}images/bg.jpg') repeat-x;
 	font-family:Verdana;
 	font-size:12px;
 	}
@@ -76,12 +76,12 @@ ul {
     </script>
 <script type="text/javascript">
     function byHour(){
-    	$.getJSON("http://192.168.201.237:8000/emailanalysis/byhour/json/", {start:"2010-9-20", end:"2011-3-10", daysofweek:"0,6"}, function(data){
+    	$.getJSON("/emailanalysis/byhour/json/", {start:"2010-9-20", end:"2011-3-10", daysofweek:"0,6"}, function(data){
     		drawVisualization(data);
     	});
     };
     function initVisualization(){
-     	$.getJSON("http://192.168.201.237:8000/emailanalysis/topsenders/json/",{},function(data){
+     	$.getJSON("/emailanalysis/topsenders/json/",{},function(data){
     		 drawVisualization(data);
 /*     		$.each(data, function(i,item) {
     		 
@@ -106,8 +106,8 @@ ul {
       function drawVisualization(jsonOutput) {
         // Create and populate the data table.
 
-         var jsonOutput = {"y": [25.0, 18.0, 17.0, 16.0, 18.0, 11.0, 10.0, 4.0, 7.0, 4.0, 4.0, 12.0, 11.0, 21.0, 39.0, 33.0, 44.0, 53.0, 72.0, 57.0, 58.0, 34.0, 31.0, 33.0],
-				"labels": ["2000-01-01 00:00:00", "2000-01-01 01:00:00", "2000-01-01 02:00:00", "2000-01-01 03:00:00", "2000-01-01 04:00:00", "2000-01-01 05:00:00", "2000-01-01 06:00:00", "2000-01-01 07:00:00", "2000-01-01 08:00:00", "2000-01-01 09:00:00", "2000-01-01 10:00:00", "2000-01-01 11:00:00", "2000-01-01 12:00:00", "2000-01-01 13:00:00", "2000-01-01 14:00:00", "2000-01-01 15:00:00", "2000-01-01 16:00:00", "2000-01-01 17:00:00", "2000-01-01 18:00:00", "2000-01-01 19:00:00", "2000-01-01 20:00:00", "2000-01-01 21:00:00", "2000-01-01 22:00:00", "2000-01-01 23:00:00"]};
+//         var jsonOutput = {"y": [25.0, 18.0, 17.0, 16.0, 18.0, 11.0, 10.0, 4.0, 7.0, 4.0, 4.0, 12.0, 11.0, 21.0, 39.0, 33.0, 44.0, 53.0, 72.0, 57.0, 58.0, 34.0, 31.0, 33.0],
+//				"labels": ["2000-01-01 00:00:00", "2000-01-01 01:00:00", "2000-01-01 02:00:00", "2000-01-01 03:00:00", "2000-01-01 04:00:00", "2000-01-01 05:00:00", "2000-01-01 06:00:00", "2000-01-01 07:00:00", "2000-01-01 08:00:00", "2000-01-01 09:00:00", "2000-01-01 10:00:00", "2000-01-01 11:00:00", "2000-01-01 12:00:00", "2000-01-01 13:00:00", "2000-01-01 14:00:00", "2000-01-01 15:00:00", "2000-01-01 16:00:00", "2000-01-01 17:00:00", "2000-01-01 18:00:00", "2000-01-01 19:00:00", "2000-01-01 20:00:00", "2000-01-01 21:00:00", "2000-01-01 22:00:00", "2000-01-01 23:00:00"]};
          
          
          //var jsonOutput = {[304, 257, 160, 125, 87, 71, 70, 68, 67, 64, 59, 57, 55, 54, 53, 48, 47, 41, 38], ["sirrice@gmail.com", "shwang08@gmail.com", "tiffchen08@gmail.com", "farm.cp@gmail.com", "yunjiema@gmail.com", "karenshu@gmail.com", "brett.warne@gmail.com", "winkler.em@gmail.com", "niv.chandra@gmail.com", "ravdawg@gmail.com", "melty710@gmail.com", "irenefan@gmail.com", "jen.lee.ing@gmail.com", "wysun07@gmail.com", "wenfai@gmail.com", "shi.jiarui@gmail.com", "jtaschereau84@gmail.com", "hkorre@gmail.com", "jlee08@gmail.com"]};
@@ -134,7 +134,7 @@ ul {
       }
       
 
-      google.setOnLoadCallback(drawVisualization);
+      google.setOnLoadCallback(byHour);
     </script>
 	
 <!--END GRAPH CRAP-->
@@ -143,7 +143,7 @@ ul {
 	
 <body>
 <div id="logo">
-	<a href=""><img src="logo-sm.png" /></a>
+	<a href=""><img src="{{MEDIA_URL}}images/logo-sm.png" /></a>
 </div>
 <div id="dashboard">
 	<ul>

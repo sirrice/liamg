@@ -1,15 +1,23 @@
 from django.conf.urls.defaults import patterns, include, url
+from django.views.generic.simple import direct_to_template
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
 # admin.autodiscover()
 
 urlpatterns = patterns('emailanalysis.views',
-
     (r'^$', 'index'),
     (r'^(?P<datatype>[\w]+)/json/$', 'getjson'),
     (r'^sendmail/$', 'sendmail'),
     (r'^sendmail/send/$', 'sendmail'),
+    (r'^test/$', direct_to_template, {'template': 'emailanalysis/testautocomplete.html'}),
+                       
+    (r'^login/submit/$', 'login_view'),
+    (r'^login/$', 'login_view'),
+    (r'^logout/$', 'logout_view'),
+    (r'^createuser/$', 'create_user'),
+    (r'^createuser/submit/$', 'create_user'),
+    (r'^results/$', 'results'),                       
 
     # Examples:
     # url(r'^$', 'liamgwebapp.views.home', name='home'),
