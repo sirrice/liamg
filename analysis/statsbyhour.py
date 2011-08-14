@@ -109,7 +109,7 @@ class RepliesByHour(object):
             WHERE.append("me.email like '%%%s%%'" % email)
 
         if lat:
-            SELECT = "avg(lat) as avglat, strftime('%H', sentdate) as hour" # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
+            SELECT = "avg(lat) * 60 as avglat, strftime('%H', sentdate) as hour" # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
         else:
             SELECT = "count(*), strftime('%H', sentdate) as hour"#, CAST(strftime('%M', sentdate)/60 as integer) as minute"
 
