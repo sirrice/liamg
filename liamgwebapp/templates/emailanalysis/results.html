@@ -4,6 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>inbox.dr | results</title>
 <<<<<<< HEAD
+<<<<<<< HEAD
 <link rel="shortcut icon" href="../favicon.png" /> 
 <link rel="stylesheet" type="text/css" href="" />
 <style type="text/css">
@@ -90,23 +91,28 @@ li {
 </style>
 =======
 <!--<link rel="shortcut icon" href="/media/images/favicon.png" /> -->
+=======
+
+
+<link rel="shortcut icon" href="/media/images/favicon.png" />
+>>>>>>> 3648fcc3b2e5bc35caceba1c87d2639f97a184d3
 <link rel="stylesheet" type="text/css" href="/media/css/style.css" />
 >>>>>>> 8e0d5dd81c411b6b9e8141094881a3464a3facf5
 
 <!--GRAPH CODE-->
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-
 <link rel="stylesheet" href="/media/jQRangeSlider/css/dev.css">  
 <script src="/media/js/jquery.js"></script>
 <script src="/media/js/jquery-ui.js"></script>
-<script src="/media/js/base.js"></script>
 <script src="/media/jQRangeSlider/jQRangeSlider.js"></script>
 <script src="/media/jQRangeSlider/jQDateRangeSlider.js"></script>
-
+<script src="/media/js/base.js"></script>
+<script src="/media/js/sparklines.js"></script>
 
 
 <script type="text/javascript">
       google.load('visualization', '1', {packages: ['corechart']});
+<<<<<<< HEAD
 </script>
 <script type="text/javascript">
 <<<<<<< HEAD
@@ -239,6 +245,64 @@ li {
 	  	makeDateSlider("#dateslider", {bounds:{min:new Date(2004,0,1), max:new Date(2012,0,1)}}, byHour);
 	});
 >>>>>>> 8e0d5dd81c411b6b9e8141094881a3464a3facf5
+=======
+
+var chartsData = {};
+var startdate, enddate, email;
+
+
+function filterByEmail(){
+		var addresses = $("input[name=emailFilter]").val().replace(/[,\s]+$/g, '');
+		opts = {};
+		opts['start'] = startdate;
+		opts['end'] = enddate;
+		opts['email'] = addresses;
+		
+   		$.getJSON("/emailanalysis/byhour/json/", opts, function(data){
+			drawChart(data, chartsData['hourChart']);
+   		});	  
+		opts['lat'] = 'True';
+   		$.getJSON("/emailanalysis/byhour/json/", opts, function(data){
+			drawChart(data, chartsData['latencyChart']);
+   		}); 		
+	}	
+	
+function rerenderAll() {
+	getTopSendersList("foo", startdate, enddate);
+	filterByEmail();
+}
+
+function updateDateRange(start, end) {
+	startdate = start;
+	enddate = end;
+	rerenderAll();		
+}
+
+
+
+
+
+
+function init() {	
+    $.getJSON("/emailanalysis/contacts/json/", function(data) {
+			make_autocomplete("contacts_list", data);
+		});
+	chartsData = {'hourChart' : setupChart('hourChart', "# emails/hour"),
+				'latencyChart' : setupChart('latencyChart', "avg # hours before reply")}
+	//filterByEmail();
+	getTopSendersList("foo");
+	
+	makeDateSlider("#dateslider", {bounds:{min:new Date(2004,0,1), max:new Date(2012,0,1)}}, updateDateRange);
+	
+//	$(window).resize($(".core_gallery_table"));
+}
+
+
+
+google.setOnLoadCallback(init);
+	
+     /*  width:625, height:200,*/
+>>>>>>> 3648fcc3b2e5bc35caceba1c87d2639f97a184d3
     </script>
 	
 <!--END GRAPH CRAP-->
@@ -246,6 +310,7 @@ li {
 </head>
 	
 <body>
+	
 <div id="logo">
 	<a href=""><img src="/media/images/logo-sm.png"/></a> <!--{{MEDIA_URL}}images/logo-sm.png-->
 </div>
@@ -265,6 +330,7 @@ li {
 	
 </div>
 <div id="results">
+<<<<<<< HEAD
 <<<<<<< HEAD
 	<div class="category" id="general">Amount of Responses</div>
 		<div class="chart_container" id="hourChart"></div>
@@ -292,11 +358,40 @@ li {
 	<!--INSERTGRAPH-->
 	<img src="" width="900px" height="300px" alt="graph here"/>
 	<div class="description">peepeeppee</div>
+=======
+
+	
+	<div class="category" id="topcontacts">Top Email Contacts</div>
+		<div class="description">Shows you who you are most frequently in contact with.</div>
+		<div id="foo"></div>
+
+	<div style="height: 20pt;">	&nbsp;</div>
+
+		<div style="width:500px; height:30px;" id="dateslider" class="dateSlider"></div>
+		  <div><form id="filterform" onSubmit="filterByEmail(); return false;">
+			<input class="maininput" name="emailFilter" id="contacts_list" type="text" style="width:500px" /> 
+		   	<input type="submit" id="saveButton" value="Filter"></input>
+		  </form></div>
+
+
+	<div class="category" id="general">Amount of Responses</div>
+		<div class="description">This shows the average number of emails you send over time. Higher number = more emails sent. </div>
+		<div class="chart_container" id="hourChart"></div>
+
+	<div class="category" id="responsetime">Response Time</div>
+		<div class="description">The time it takes to receive a reply to your emails on an hourly basis.</div>
+		<div class="chart_container" id="latencyChart"></div>
+	<div class="category" id="responserate">Response Rate</div>
+		<div class="description">This </div>
+		<div class="chart_container" id=""></div>
+
+>>>>>>> 3648fcc3b2e5bc35caceba1c87d2639f97a184d3
 </div>
 </body>
 </html>
 	
 	
+<<<<<<< HEAD
 	
 	
 	
@@ -318,3 +413,5 @@ li {
 	
 	
 	
+=======
+>>>>>>> 3648fcc3b2e5bc35caceba1c87d2639f97a184d3
