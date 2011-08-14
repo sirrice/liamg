@@ -35,7 +35,7 @@ def get_top_senders(num, startdate, enddate):
         print "%35s %9s %s" % (item[0], item[1], "*"*int(length))
    
     obj = dict()
-    obj["x"] = emails 
+    obj["labels"] = emails 
     obj["y"] = numbers
     
     print obj
