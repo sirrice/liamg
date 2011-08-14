@@ -30,7 +30,7 @@ def download_headers(imap_hostname, user, passw, conn):
      (SINCE 01-Jan-2011)
     """
     label_string = "[Gmail]/All Mail"
-    search_string = "(ALL)"
+    search_string = "(SINCE 13-Aug-2011)"
 
     
     imap_conn = imaplib.IMAP4_SSL(imap_hostname)
@@ -53,6 +53,13 @@ def download_headers(imap_hostname, user, passw, conn):
         for d in dat:
             proc_msg(conn, d)
 
+
+# check if username/password combo is valid
+def authenticate_login(imap_hostname, user, passw):
+
+    imap_conn = imaplib.IMAP4_SSL(imap_hostname)
+    imap_conn.debug = 0
+    imap_conn.login(user, passw)
 
 
 def proc_msg(conn, d):
