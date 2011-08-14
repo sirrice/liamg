@@ -6,6 +6,9 @@ from django.conf.urls.defaults import patterns, include, url
 
 urlpatterns = patterns('',
     (r'^emailanalysis/', include('emailanalysis.urls')),
+    (r'^media/(?P<path>.*)$', 'django.views.static.serve'),
+#     {'document_root': settings.MEDIA_ROOT}),
+
     # Examples:
     # url(r'^$', 'liamgwebapp.views.home', name='home'),
     # url(r'^liamgwebapp/', include('liamgwebapp.foo.urls')),
@@ -16,3 +19,13 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
 )
+
+
+
+
+
+
+
+
+
+
