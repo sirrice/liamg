@@ -9,8 +9,8 @@ import json
 import re
 
 
-def get_top_senders(num, startdate, enddate):
-    conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
+def get_top_senders(num, startdate, enddate, conn):
+#    conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
     c = conn.cursor()
     try:
         email_list = ["'%yahoo%'", "'%gmail%'", "'%aol%'", "'%hotmail%'", "'%live.com%'"]
@@ -22,6 +22,7 @@ def get_top_senders(num, startdate, enddate):
         res = res.fetchall()
     except Exception, e:
         print >> sys.stderr, e
+        print e
         res = None
     total = 0
     emails = []
