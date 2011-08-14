@@ -20,6 +20,7 @@ print sys.path
 
 import topsenders
 from statsbyhour import EveryoneByHour, LineData
+from contacts import Contacts
 from django import forms
 
 class ContactForm(forms.Form):
@@ -63,6 +64,10 @@ def getjson(request, datatype):
         queries.append(('y', ebh.get_sql(lat, start, end, daysofweek)))
         ld = LineData()
         data = ld.get_data(queries)
+
+    elif datatype == "contacts":
+        contacts = Contacts()
+        data = contacts.get_data()
 
     else:
         return HttpResponse('json call not recognized')
