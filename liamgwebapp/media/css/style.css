@@ -93,6 +93,9 @@ li {
 	background-color:rgba(255,255,255,0.9);
 	border-radius:5px 0 0 0;
 	-moz-border-radius:15px;
+	border-top: 3px solid #eef;
+	border-left: 3px solid #eef;	
+	background: #eef;
 	}
 .filtertext {
 	float:left;
