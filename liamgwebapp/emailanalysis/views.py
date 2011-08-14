@@ -26,7 +26,7 @@ sys.path.append(os.path.join(os.getcwd(), "../analysis"))
 
 # import analysis modules
 import topsenders
-from statsbyhour import EveryoneByHour, LineData
+from statsbyhour import *
 from timeline import *
 from contacts import Contacts
 from django import forms
@@ -151,9 +151,10 @@ def getjson(request, datatype):
         
 
     elif datatype == "byhour":
-        ebh = EveryoneByHour()
+        ebh = RepliesByHour()
         queries = []
-        queries.append(('y', ebh.get_sql(lat, start, end, daysofweek)))
+        queries.append(('y', ebh.get_sql(lat=lat, reply=reply, start=start, end=end,
+                                         daysofweek=daysofweek, email=email)))
         ld = LineData()
         data = ld.get_data(queries)
 
