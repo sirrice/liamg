@@ -7,9 +7,9 @@ from django.conf import settings
 
 urlpatterns = patterns(    '',
     (r'^emailanalysis/', include('emailanalysis.urls')),
+    (r'^static/(?P<path>.*)$', 'django.views.static.serve'),
     (r'^media/(?P<path>.*)$', 'django.views.static.serve',  {'document_root': settings.MEDIA_ROOT }),
      # Examples:
-    (r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
 
     # Examples:
     # url(r'^$', 'liamgwebapp.views.home', name='home'),
