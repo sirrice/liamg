@@ -11,13 +11,17 @@
 @font-face {
 	}
 body {
-	width:900px;
-	margin-left:auto;
-	margin-right:auto;
+	width:100%;
 	background:url('/media/images/bg.jpg') repeat-x;
 	font-family:Verdana;
 	font-size:12px;
 	}
+#main {
+	width: 900px;	
+	margin-left:auto;
+	margin-right:auto;
+	background: #efefef;
+}
 #logo {
 	margin-top:25px;
 	text-decoration:none;
@@ -29,6 +33,7 @@ body {
 	float:left;
 	width:190px;
 	height:100%;
+	padding-right: 10px;
 	border:2px #B5B7B9 solid;
 	border-radius:15px;
 	-moz-border-radius:15px;
@@ -73,12 +78,17 @@ li {
 .top_list {
 	padding-left:2px;
 	padding-top:2px;
+	margin-top: 10px;
 	color:#000000;
 }
 #selected {
 	border-left:2px #999999 solid;
 	color:white;
 	background-color:#555555;
+}
+
+#dashboard {
+	
 }
 
 
