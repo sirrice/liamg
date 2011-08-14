@@ -3,8 +3,6 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>inbox.dr | results</title>
-<<<<<<< HEAD
-<<<<<<< HEAD
 <link rel="shortcut icon" href="../favicon.png" /> 
 <link rel="stylesheet" type="text/css" href="" />
 <style type="text/css">
@@ -17,8 +15,6 @@
          url('font/nevis-webfont.svg#nevisBold') format('svg');
     font-weight: normal;
     font-style: normal;
-	}
-@font-face {
 	}
 body {
 	width:900px;
@@ -88,10 +84,27 @@ li {
 	color:white;
 	background-color:#555555;
 }
+#filters {
+	font-weight:bold;
+	padding:5px 0 0 5px;
+	width:500px;
+	height:50px;
+	position:fixed;
+	right:0;
+	bottom:0;
+	background-color:rgba(255,255,255,0.9);
+	border-radius:5px 0 0 0;
+	-moz-border-radius:15px;
+	}
+.filtertext {
+	float:left;
+	width:150px;
+}
+.filterstuff {
+	float:left;
+	width:300px;
+}
 </style>
-=======
-<!--<link rel="shortcut icon" href="/media/images/favicon.png" /> -->
-=======
 
 
 <link rel="shortcut icon" href="/media/images/favicon.png" />
@@ -330,49 +343,12 @@ google.setOnLoadCallback(init);
 	
 </div>
 <div id="results">
-<<<<<<< HEAD
-<<<<<<< HEAD
-	<div class="category" id="general">Amount of Responses</div>
-		<div class="chart_container" id="hourChart"></div>
-		<div class="description">This shows the average number of emails you send over time. Higher number = more emails sent. </div>
-	<div class="category" id="topcontacts">Top Email Contacts</div>
-		<!--TOP FRIENDS HERE-->
-		<div class="description">Shows you who you are most frequently in contact with.</div>
-	<div class="category" id="responsetime">Response Time</div>
-		<div class="chart_container" id="latencyChart"></div>
-		<div class="description">whatever</div>
-	<div class="category" id="responserate">Response Rate</div>
-		<div class="chart_container" id=""></div>
-		<div class="description">This </div>
-</div>
-</body>
-</html>
-=======
-	<div class="category" id="general">General Stats</div>
-	<div id="visualization"></div>
-	<form action="#"><!--<input name="min" /><input name="max" />-->
-		<div id="dateslider" class="dateSlider"></div> 
-  	</form>
-	<div class="description">This shows the average number of emails you send over time. Higher number = more emails sent. </div>
-	<div class="category" id="re_overall">Personal Response Time</div>
-	<!--INSERTGRAPH-->
-	<img src="" width="900px" height="300px" alt="graph here"/>
-	<div class="description">peepeeppee</div>
-=======
-
 	
 	<div class="category" id="topcontacts">Top Email Contacts</div>
 		<div class="description">Shows you who you are most frequently in contact with.</div>
 		<div id="foo"></div>
 
 	<div style="height: 20pt;">	&nbsp;</div>
-
-		<div style="width:500px; height:30px;" id="dateslider" class="dateSlider"></div>
-		  <div><form id="filterform" onSubmit="filterByEmail(); return false;">
-			<input class="maininput" name="emailFilter" id="contacts_list" type="text" style="width:500px" /> 
-		   	<input type="submit" id="saveButton" value="Filter"></input>
-		  </form></div>
-
 
 	<div class="category" id="general">Amount of Responses</div>
 		<div class="description">This shows the average number of emails you send over time. Higher number = more emails sent. </div>
@@ -385,33 +361,16 @@ google.setOnLoadCallback(init);
 		<div class="description">This </div>
 		<div class="chart_container" id=""></div>
 
->>>>>>> 3648fcc3b2e5bc35caceba1c87d2639f97a184d3
 </div>
+	<div id="filters">
+	<div class="filtertext">
+		Set Date Range:<p></p>
+		Specify Persons:</div>
+	<div class="filterstuff" style="font-size:10px;">
+	<div style="width:500px; height:20px; " id="dateslider" class="dateSlider"></div>
+	<form style="font-size:18px;" id="filterform" onSubmit="filterByEmail(); return false;">
+			<input class="maininput" name="emailFilter" id="contacts_list" type="text" style="width:200px" /> 
+		   	<input type="submit" id="saveButton" value="Filter"></input>
+		  </form></div>
 </body>
 </html>
-	
-	
-<<<<<<< HEAD
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
->>>>>>> 8e0d5dd81c411b6b9e8141094881a3464a3facf5
-	
-	
-	
-=======
->>>>>>> 3648fcc3b2e5bc35caceba1c87d2639f97a184d3
