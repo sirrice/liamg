@@ -10,8 +10,7 @@ class BDLineData(object):
     def proc_rows(self, res):
         return map(tuple, map(lambda row: [float(row[0]), int(row[1]), parse(row[2])], res))
 
-    def get_data(self, queries, statid=0, granularity=None, start=None, end=None):
-        conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
+    def get_data(self, queries, conn, statid=0, granularity=None, start=None, end=None):
 
         cur = conn.cursor()
         tmpdata = {}
@@ -117,10 +116,11 @@ class ByDay(object):
 
 
 if __name__ == '__main__':
+    conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
     bd = ByDayNorm()
     queries = []
     queries.append(('lydia', bd.get_sql(email="zheny")))
     ld = BDLineData()
-    data = ld.get_data(queries)
+    data = ld.get_data(queries, conn)
     import json
     print json.dumps(data)
