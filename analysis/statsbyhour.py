@@ -84,7 +84,7 @@ class LineData(object):
 
 
 class RepliesByHour(object):
-    def get_sql(self, lat=True, reply=True, start=None, end = None, daysofweek = None, name="eugene"):
+    def get_sql(self, lat=True, reply=True, start=None, end = None, daysofweek = None, email="sirrice"):
         WHERE = []
         WHERE.append("l.lat < 1")
         if start:
@@ -99,8 +99,8 @@ class RepliesByHour(object):
             WHERE.append("me.id = l.replyuid")
         else:
             WHERE.append("me.id = l.senduid")
-        if name:
-            WHERE.append("me.name like '%%%s%%'" % name)
+        if email:
+            WHERE.append("me.email like '%%%s%%'" % email)
 
         if lat:
             SELECT = "avg(lat) as avglat, strftime('%H', sentdate) as hour" # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
@@ -136,27 +136,6 @@ class EveryoneByHour(object):
         return sql
 
 
-class AllByHour(object):
-    def get_sql(self, lat=True, start=None, end = None, daysofweek = None, name="eugene"):
-        "select *, strftime('%H', date) from msgs"
-        WHERE = []
-        WHERE.append("l.lat < 1")
-        if start:
-            WHERE.append("datetime(sentdate) > datetime('%s')" % start.strftime('%Y-%m-%d'))
-        if end:
-            WHERE.append("datetime(sentdate) < datetime('%s')" % end.strftime('%Y-%m-%d'))
-        if daysofweek:
-            WHERE.append("strftime('%w', sentdate) in (%s)" % (map(lambda x: "'%s'" % x, daysofweek)))
-
-        if lat:
-            SELECT = "avg(lat) as avglat, strftime('%H', sentdate) as hour"#, CAST(strftime('%M', sentdate)/60 as integer) as minute"
-        else:
-            SELECT = "count(*), strftime('%H', sentdate) as hour"#, CAST(strftime('%M', sentdate)/60 as integer) as minute"
-
-        WHERE = ' and '.join(WHERE)
-
-        sql = "SELECT %s FROM latency l WHERE %s GROUP BY hour ORDER BY hour asc;" % (SELECT, WHERE)
-        return sql
 
 
     
