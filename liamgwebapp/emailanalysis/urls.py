@@ -12,6 +12,7 @@ urlpatterns = patterns('emailanalysis.views',
     (r'^sendmail/send/$', 'sendmail'),
     (r'^test/$', direct_to_template, {'template': 'emailanalysis/testautocomplete.html'}),
     (r'^testdate/$', direct_to_template, {'template': 'emailanalysis/testdateslider.html'}),
+    (r'^dash/$', direct_to_template, {'template': 'emailanalysis/dashboard.html'}),                       
     (r'^home/$', direct_to_template, {'template': 'emailanalysis/home.html'}),                                              
                        
     (r'^login/submit/$', 'login_view'),
