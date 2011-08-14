@@ -11,17 +11,13 @@
 @font-face {
 	}
 body {
-	width:100%;
+	width:900px;
+	margin-left:auto;
+	margin-right:auto;
 	background:url('/media/images/bg.jpg') repeat-x;
 	font-family:Verdana;
 	font-size:12px;
 	}
-#main {
-	width: 900px;	
-	margin-left:auto;
-	margin-right:auto;
-	background: #efefef;
-}
 #logo {
 	margin-top:25px;
 	text-decoration:none;
@@ -86,14 +82,26 @@ li {
 	color:white;
 	background-color:#555555;
 }
-
-#dashboard {
-	
+#filters {
+	font-weight:bold;
+	padding:5px 0 0 5px;
+	width:500px;
+	height:50px;
+	position:fixed;
+	right:0;
+	bottom:0;
+	background-color:rgba(255,255,255,0.9);
+	border-radius:5px 0 0 0;
+	-moz-border-radius:15px;
+	}
+.filtertext {
+	float:left;
+	width:150px;
 }
-
-
-
-
+.filterstuff {
+	float:left;
+	width:300px;
+}
 
 
 

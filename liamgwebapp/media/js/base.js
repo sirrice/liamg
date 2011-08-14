@@ -12,7 +12,7 @@ function setupChart(name, title) {
 	chart.options = {width:625, height:200,
 					hAxis: {showTextEvery: 6}, 
 					vAxis: {title: title},
-					legend: "none", colors:['red','#004411']};
+					legend: "none"};
 	chart.chart.draw(chart.data, chart.options);	
 	return chart;
 }

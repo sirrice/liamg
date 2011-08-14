@@ -22,7 +22,10 @@
 <script type="text/javascript">
       google.load('visualization', '1', {packages: ['corechart']});
 
-var chartsData = {};
+
+    var chartsData = {};
+    google.setOnLoadCallback(init);
+
 var startdate, enddate, email;
 
 
@@ -57,7 +60,6 @@ function updateDateRange(start, end) {
 
 
 
-
 function init() {	
     $.getJSON("/emailanalysis/contacts/json/", function(data) {
 			make_autocomplete("contacts_list", data);
@@ -73,18 +75,13 @@ function init() {
 }
 
 
-
-google.setOnLoadCallback(init);
-	
-     /*  width:625, height:200,*/
-    </script>
+</script>
 	
 <!--END GRAPH CRAP-->
 
 </head>
 	
 <body>
-	<div id="main">
 <div id="logo">
 	<a href=""><img src="/media/images/logo-sm.png"/></a> <!--{{MEDIA_URL}}images/logo-sm.png-->
 </div>
@@ -98,25 +95,18 @@ google.setOnLoadCallback(init);
 	<li class="top_list">Time-Based Metrics</li>
 		<ul>
 		<li>Response Time<!--People's average response time to you over a time range--></li>
-		<li>Response Rate<!--% of time people will respond to you over a time range--></li>
+		<li>Response Rate<!-- of time people will respond to you over a time range--></li>
 		</ul>
 	</ul>
 	
 </div>
 <div id="results">
-
 	
 	<div class="category" id="topcontacts">Top Email Contacts</div>
 		<div class="description">Shows you who you are most frequently in contact with.</div>
 		<div id="foo"></div>
 
 	<div style="height: 20pt;">	&nbsp;</div>
-
-		<div style="width:500px; height:30px;" id="dateslider" class="dateSlider"></div>
-		  <div><form id="filterform" onSubmit="filterByEmail(); return false;">
-			<input class="maininput" name="emailFilter" id="contacts_list" type="text" style="width:500px" /> 
-		   	<input type="submit" id="saveButton" value="Filter"></input>
-		  </form></div>
 
 
 	<div class="category" id="general">Amount of Responses</div>
@@ -126,14 +116,21 @@ google.setOnLoadCallback(init);
 	<div class="category" id="responsetime">Response Time</div>
 		<div class="description">The time it takes to receive a reply to your emails on an hourly basis.</div>
 		<div class="chart_container" id="latencyChart"></div>
-	<div class="category" id="responserate">Response Rate</div>
+	<!--<div class="category" id="responserate">Response Rate</div>
 		<div class="description">This </div>
-		<div class="chart_container" id=""></div>
+		<div class="chart_container" id=""></div>-->
 
 </div>
 
-</div>
+	<div id="filters">
+	<div class="filtertext">
+		Set Date Range:<p></p>
+		Specify Persons:</div>
+	<div class="filterstuff" style="font-size:10px;">
+	<div style="width:300px; height:25px; " id="dateslider" class="dateSlider"></div>
+	<form style="font-size:12pt;" id="filterform" onSubmit="filterByEmail(); return false;">
+			<input class="maininput" name="emailFilter" id="contacts_list" type="text" style="font-size: 12pt; width:200px;" /> 
+		   	<input type="submit" id="saveButton" value="Filter"></input>
+		  </form></div>
 </body>
 </html>
-	
-	
