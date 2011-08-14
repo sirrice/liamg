@@ -48,15 +48,15 @@ class CreateUserForm(forms.Form):
 # index view
 def index(request):
     if request.user.is_authenticated():
-#        return HttpResponseRedirect(reverse('emailanalysis.views.results'))
-        return render_to_response('emailanalysis/index.html')
+        return HttpResponseRedirect(reverse('emailanalysis.views.results'))
+#        return render_to_response('emailanalysis/index.html')
     else:
         return HttpResponseRedirect(reverse('emailanalysis.views.login_view'))
 #        return HttpResponseRedirect('emailanalysis/login')
     return render_to_response('emailanalysis/index.html')
 
 def results(request):
-    return render_to_response('emailanalysis/results.html')
+    return render_to_response('emailanalysis/results.html',context_instance=RequestContext(request))
 
 # log in view
 def login_view(request):
