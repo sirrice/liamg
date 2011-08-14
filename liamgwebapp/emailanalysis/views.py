@@ -16,6 +16,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django import forms
 
+# models
+from emailanalysis.models import Userdbs
+
 # import modules for processing data
 from dateutil.parser import parse
 import datetime #need to get today's date as the default
@@ -23,12 +26,18 @@ import json
 
 # add path for analysis scripts
 sys.path.append(os.path.join(os.getcwd(), "../analysis"))
+sys.path.append(os.path.join(os.getcwd(), ".."))
 
 # import analysis modules
 import topsenders
-from statsbyhour import EveryoneByHour, LineData
+from statsbyhour import *
 from timeline import *
 from contacts import Contacts
+import getdata
+
+
+#getdata.setup_db(conn)
+
 
 class ContactForm(forms.Form):
     subject = forms.CharField(max_length=100)
@@ -38,8 +47,9 @@ class ContactForm(forms.Form):
     cc_myself = forms.BooleanField(required=False)
 
 class LoginForm(forms.Form):
-    username = forms.CharField(max_length=100)
-    password = forms.CharField(widget=forms.PasswordInput(render_value=False),max_length=100)
+    username = forms.CharField(widget=forms.TextInput(attrs={'size':'25','style':'font-size:18px'}),max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput(render_value=False, attrs={'size':'25','style':'font-size:18px'}),max_length=100)
+    defaultdb = forms.NullBooleanField()
 
 class CreateUserForm(forms.Form):
     username = forms.CharField(max_length=100)
@@ -47,44 +57,101 @@ class CreateUserForm(forms.Form):
     password = forms.CharField(max_length=100)
 
 # index view
+# redirects to login if not logged in
+# otherwise, shows results
+@login_required(login_url='/emailanalysis/login/')
 def index(request):
-    if request.user.is_authenticated():
-        return HttpResponseRedirect(reverse('emailanalysis.views.results'))
-#        return render_to_response('emailanalysis/index.html')
-    else:
-        return HttpResponseRedirect(reverse('emailanalysis.views.login_view'))
-#        return HttpResponseRedirect('emailanalysis/login')
-    return render_to_response('emailanalysis/index.html')
+    # if logged in, redirect to results view
+    return HttpResponseRedirect(reverse('emailanalysis.views.results'))
 
+@login_required(login_url='/emailanalysis/login/')
 def results(request):
+
     return render_to_response('emailanalysis/results.html',context_instance=RequestContext(request))
+
+
+def pie(request):
+    return render_to_response('emailanalysis/pie.html',context_instance=RequestContext(request))
 
 # log in view
 def login_view(request):
 
     if request.method == 'POST':
         form = LoginForm(request.POST)
+
+
         if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
+            defaultdb = form.cleaned_data['defaultdb']
+            if defaultdb:
+                # log in as default
+                username = "default@default.com"
+                user = authenticate(username=username,password='default')
 
-            user = authenticate(username=username,password=password)
-            if user is not None:
-                if user.is_active:
-                    login(request,user)
-                    return HttpResponse('login successful') # Return success
 
+                # create default user if it doesn't exist
+                if not user:
+                    user = User.objects.create_user(username, username, "default")
+                    user = authenticate(username=username,password='default')
+
+                    userdb = Userdbs(username=username)
+                    userdb.save() # creates userdb.id
+                    dbname = 'mail.db'
+                    userdb.dbname = dbname
+                    userdb.save()
+                    
+                login(request,user)
+                return HttpResponseRedirect("/emailanalysis/results/")
+
+            else:
+                username = form.cleaned_data['username']
+                password = form.cleaned_data['password']
+
+                # check if gmail password is valid
+                try:
+                    getdata.authenticate_login('imap.googlemail.com',username,password)
+                except:
+                    # not valid
+                    return HttpResponse('user/password combo invalid')
+
+                # check if user in db
+                user = authenticate(username=username,password='')
+                if user is not None:
+                    if user.is_active:
+                        login(request,user)
+                        # should redirect user to the results page
+                        return HttpResponseRedirect("/emailanalysis/results/")
+                    else:
+                        return HttpResponse('user not recognized') # Return fail
+                # user doesn't exist: create user
+                # download data, return results page
                 else:
-                    return HttpResponse('user not recognized') # Return fail
-            return HttpResponse('user does not exist')
+                    user = User.objects.create_user(username,'','')
+                    user = authenticate(username=username,password='')
+                    login(request,user)
+                    # create database name for user
+                    userdb = Userdbs(username=username)
+                    userdb.save() # creates userdb.id
+                    dbname = 'user{0}.db'.format(userdb.id)
+                    userdb.dbname = dbname
+                    userdb.save()
+                    print dbname
+                    conn = sqlite3.connect(dbname, detect_types=sqlite3.PARSE_DECLTYPES)
+                    print conn
+                    getdata.setup_db(conn)
+                    getdata.download_headers('imap.googlemail.com',username,password,conn)
+                    os.system('./analyzedb.sh {0}'.format(dbname))
+                    conn.close()
+
+                    # redirect to results page?
+                    return HttpResponse('data downloaded')
         else:
             return HttpResponse('form invalid')
     else:
-        form = LoginForm()
+        form = LoginForm(initial={'username':'default@default.com','password':'default','defaultdb':True})
         c = {}
         c.update(csrf(request))
 
-        return render_to_response('emailanalysis/login.html', {
+        return render_to_response('emailanalysis/home.html', {
             'form': form,
             },context_instance=RequestContext(request))
 
@@ -137,7 +204,12 @@ def getjson(request, datatype):
     if daysofweek: daysofweek = daysofweek.split(",")
     if reply is not None: reply = bool(reply)
 
-    
+    curruser = Userdbs.objects.get(username=request.user)
+    print request.user
+    print curruser.dbname
+
+    conn = sqlite3.connect(curruser.dbname, detect_types=sqlite3.PARSE_DECLTYPES)
+
     # db call to get data
     if datatype == 'topsenders':
         
@@ -145,19 +217,21 @@ def getjson(request, datatype):
         start = req.get('start', None)
         end = req.get ('end', None)
         top = 10       
-        data = topsenders.get_top_senders(top, start, end)
+        data = topsenders.get_top_senders(top, start, end, conn)
         
 
     elif datatype == "byhour":
-        ebh = EveryoneByHour()
+        ebh = RepliesByHour()
         queries = []
-        queries.append(('y', ebh.get_sql(lat, start, end, daysofweek)))
+        print "EMAIL", email
+        queries.append(('y', ebh.get_sql(lat=lat, reply=reply, start=start, end=end,
+                                         daysofweek=daysofweek, email=email)))
         ld = LineData()
-        data = ld.get_data(queries)
+        data = ld.get_data(queries, conn)
 
     elif datatype == "contacts":
         contacts = Contacts()
-        data = contacts.get_data()
+        data = contacts.get_data(conn)
 
     elif datatype == "getlatency":
         bd = ByDay()
@@ -165,14 +239,15 @@ def getjson(request, datatype):
         queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
                                         granularity=granularity, email=email)))
         ld = BDLineData()
-        data = ld.get_data(queries, 0, granularity=granularity)
+        data = ld.get_data(queries, conn, 0, granularity=granularity, start=start, end=end)
+
     elif datatype == "getcount":
-        bd = ByDay()
+        bd = ByDayNorm()
         queries = []
         queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
                                         granularity=granularity, email=email)))
         ld = BDLineData()
-        data = ld.get_data(queries, 1, granularity=granularity)
+        data = ld.get_data(queries, conn, 1, granularity=granularity, start=start, end=end)
 
     else:
         return HttpResponse('json call not recognized')
