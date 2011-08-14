@@ -10,14 +10,12 @@ class BDLineData(object):
     def proc_rows(self, res):
         return map(tuple, map(lambda row: [float(row[0]), int(row[1]), parse(row[2])], res))
 
-    def get_data(self, queries, statid=0, granularity=None):
+    def get_data(self, queries, statid=0, granularity=None, start=None, end=None):
         conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
 
         cur = conn.cursor()
         tmpdata = {}
         labels = []
-        start = None
-        end = None
 
         i = 0
         for title, sql in queries:
@@ -25,31 +23,70 @@ class BDLineData(object):
             res = self.proc_rows(res)
             d = {}
             for lat, count, date in res:
-                d[date] = (lat, count)
+                d[date.strftime('%Y-%m-%d')] = (lat, count)
                 if not start or date < start: start = date
                 if not end or date > end: end = date
             tmpdata[title] = d
 
-        td = granularity == 'week' and timedelta(days=7) or timedelta(days=1)
+        if start == None:
+            return {'labels' : [], 'y' : []}
+
+        if granularity == "week":
+            start = start - timedelta(days = ((start.weekday()+1)%7))
+            end = end - timedelta(days = ((end.weekday()+1)%7))
+            td = timedelta(days=7)
+        else:
+            td = timedelta(days=1)
+
         xs = []
         while start <= end:
-            xs.append(start)
+            xs.append(start.strftime('%Y-%m-%d'))
             start += td
 
         data = {}
         for title, d in tmpdata.items():
+            print d.keys()
+            print xs
             data[title] = [x in d and d[x][statid] or 0 for x in xs]
+        data['labels'] = xs        
 
         cur.close()
 
-        
-        data['labels'] = map(lambda d: d.strftime('%Y-%m-%d'), xs)
+        print "array lengths", start, end, map(len, data.values())
         return data
+
+
+class ByDayNorm(object):
+    def get_sql(self, lat=True, reply=None, start=None, end = None,
+                granularity=None, email=None):
+        
+        WHERE = []
+        if start:
+            WHERE.append("datetime(date) > datetime('%s')" % start.strftime('%Y-%m-%d'))
+        if end:
+            WHERE.append("datetime(date) < datetime('%s')" % end.strftime('%Y-%m-%d'))
+
+        WHERE.append("(me.id = m.fr)")
+
+        if email:
+            WHERE.append("me.email like '%%%s%%'" % email)
+
+        if granularity == 'week':
+            SELECT = "count(*), count(*), date(date, '-'||strftime('%w',date)||' days') as date"
+        else:
+            SELECT = "count(*), count(*), date(date) as date"
+
+        WHERE = ' and '.join(WHERE)
+
+        sql = "SELECT %s FROM msgs m, contacts me WHERE %s GROUP BY date ORDER BY date asc;" % (SELECT, WHERE)
+        return sql
+
+
 
 
 
 class ByDay(object):
-    def get_sql(self, lat=True, reply=True, start=None, end = None,
+    def get_sql(self, lat=True, reply=None, start=None, end = None,
                 granularity=None, email="sirrice"):
         
         WHERE = []
@@ -80,9 +117,9 @@ class ByDay(object):
 
 
 if __name__ == '__main__':
-    bd = ByDay()
+    bd = ByDayNorm()
     queries = []
-    queries.append(('lydia', bd.get_sql(name="zheny")))
+    queries.append(('lydia', bd.get_sql(email="zheny")))
     ld = BDLineData()
     data = ld.get_data(queries)
     import json
