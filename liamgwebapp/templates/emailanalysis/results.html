@@ -3,242 +3,80 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>inbox.dr | results</title>
-<<<<<<< HEAD
-<link rel="shortcut icon" href="../favicon.png" /> 
-<link rel="stylesheet" type="text/css" href="" />
-<style type="text/css">
-@font-face {
-    font-family: 'nevisBold';
-    src: url('font/nevis-webfont.eot');
-    src: url('font/nevis-webfont.eot?#iefix') format('embedded-opentype'),
-         url('font/nevis-webfont.woff') format('woff'),
-         url('font/nevis-webfont.ttf') format('truetype'),
-         url('font/nevis-webfont.svg#nevisBold') format('svg');
-    font-weight: normal;
-    font-style: normal;
-	}
-@font-face {
-	}
-body {
-	width:900px;
-	margin-left:auto;
-	margin-right:auto;
-	background:url('/media/images/bg.jpg') repeat-x;
-	font-family:Verdana;
-	font-size:12px;
-	}
-#logo {
-	margin-top:25px;
-	text-decoration:none;
-	}
-#dashboard {
-	font-weight:bold;
-	color:#555555;
-	float:left;
-	width:190px;
-	height:100%;
-	border:2px #B5B7B9 solid;
-	border-radius:15px;
-	-moz-border-radius:15px;
-	-webkit-box-shadow: 5px 5px 1px #B5B7B9;
-	box-shadow: 5px 5px 1px #B5B7B9;
-}
-#results {
-	padding:5px;
-	margin:0 0 5px 30px;
-	float:left;
-	width:640px;
-	height:100%;
-	border:2px #B5B7B9 solid;
-	border-radius:15px;
-	-moz-border-radius:15px;
-	-webkit-box-shadow: 5px 5px 1px #B5B7B9;
-	box-shadow: 5px 5px 1px #B5B7B9;
-}
-ul {
-	margin-left:-20px;
-	list-style:none;
-}
-li {
-	padding-bottom:5px;
-	}
-.category {
-	padding-left:15px;
-	font-family:nevisBold;
-	font-size:24px;
-	border-radius:10px 10px 0 0;
-	-moz-border-radius:15px;
-	color:#FFFFFF;
-	background:#28AAE1;
-}
-.description {
-	margin-bottom: 10px;
-}
-#overview {
-	border-bottom:1px #B5B7B9 solid;
-	}
-.top_list {
-	padding-left:2px;
-	padding-top:2px;
-	color:#000000;
-}
-#selected {
-	border-left:2px #999999 solid;
-	color:white;
-	background-color:#555555;
-}
-</style>
-=======
-<!--<link rel="shortcut icon" href="/media/images/favicon.png" /> -->
+
+
+<link rel="shortcut icon" href="/media/images/favicon.png" />
 <link rel="stylesheet" type="text/css" href="/media/css/style.css" />
->>>>>>> 8e0d5dd81c411b6b9e8141094881a3464a3facf5
 
 <!--GRAPH CODE-->
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-
 <link rel="stylesheet" href="/media/jQRangeSlider/css/dev.css">  
 <script src="/media/js/jquery.js"></script>
 <script src="/media/js/jquery-ui.js"></script>
-<script src="/media/js/base.js"></script>
 <script src="/media/jQRangeSlider/jQRangeSlider.js"></script>
 <script src="/media/jQRangeSlider/jQDateRangeSlider.js"></script>
-
+<script src="/media/js/base.js"></script>
+<script src="/media/js/sparklines.js"></script>
 
 
 <script type="text/javascript">
       google.load('visualization', '1', {packages: ['corechart']});
-</script>
-<script type="text/javascript">
-<<<<<<< HEAD
-    var chartsData = {};
-    google.setOnLoadCallback(initCharts);
 
-   	function initCharts() {
-   	  setupData();
-   	  drawCharts();
-   	}
-    	
-    	
-   	function setupData(){
-   		var xLabels;
-   		var values;
-   		var jsonOutput;
-   		// by Hour
-   		//$.getJSON("http://192.168.201.237:8000/emailanalysis/byhour/json/", {}, function(jsonOutput){
-   	   		jsonOutput = {"y": [371.0, 318.0, 265.0, 324.0, 339.0, 306.0, 240.0, 183.0, 105.0, 58.0, 29.0, 49.0, 87.0, 196.0, 273.0, 347.0, 502.0, 527.0, 649.0, 595.0, 577.0, 518.0, 422.0, 386.0], "labels": ["2000-01-01 00:00:00", "2000-01-01 01:00:00", "2000-01-01 02:00:00", "2000-01-01 03:00:00", "2000-01-01 04:00:00", "2000-01-01 05:00:00", "2000-01-01 06:00:00", "2000-01-01 07:00:00", "2000-01-01 08:00:00", "2000-01-01 09:00:00", "2000-01-01 10:00:00", "2000-01-01 11:00:00", "2000-01-01 12:00:00", "2000-01-01 13:00:00", "2000-01-01 14:00:00", "2000-01-01 15:00:00", "2000-01-01 16:00:00", "2000-01-01 17:00:00", "2000-01-01 18:00:00", "2000-01-01 19:00:00", "2000-01-01 20:00:00", "2000-01-01 21:00:00", "2000-01-01 22:00:00", "2000-01-01 23:00:00"]};
-			chartsData.byHourChart = {};
-   	   		chartsData.byHourChart.data = new google.visualization.DataTable(jsonOutput);
-	        xLabels = jsonOutput.labels;
-	        values = jsonOutput.y;
-	        chartsData.byHourChart.data.addColumn('string', 'date');
- 	        chartsData.byHourChart.data.addColumn('number', 'emails');
-   	        for(var i=0; i<xLabels.length;i++){
-   	         	chartsData.byHourChart.data.addRow([xLabels[i], values[i]]);
-   	        }
-   	             
-  	             // Create and draw the visualization.
-  	     		 new google.visualization.ColumnChart(document.getElementById('hourChart')).
-  	                 draw(chartsData.byHourChart.data,
-  	                      {title:"Emails in 2011 by Hour", 
-  	                       width:625, height:200,
-  	                       hAxis: {title: "Year"}}
-  	                 ); 
-   		//});
-   		
- 		// by Latency
-   		//$.getJSON("http://192.168.201.237:8000/emailanalysis/byhour/json/", {lat:"true"}, function(jsonOutput){
-   	   		jsonOutput={"y": [0.099588106466693221, 0.15248402195203603, 0.15868749999493922, 0.17112297096784101, 0.18075661668499002, 0.22196895422967869, 0.22535204473921719, 0.30015033648395145, 0.29831360228182302, 0.28816191731663099, 0.25545019153826709, 0.17191704462415405, 0.078113292879157373, 0.086770833329753758, 0.075229828051485856, 0.078073233529732097, 0.08085297697698661, 0.062038376736516521, 0.092059418353150221, 0.091377470427106658, 0.082263062453055605, 0.099022705756077495, 0.09667538835499348, 0.10111335996017246], "labels": ["2000-01-01 00:00:00", "2000-01-01 01:00:00", "2000-01-01 02:00:00", "2000-01-01 03:00:00", "2000-01-01 04:00:00", "2000-01-01 05:00:00", "2000-01-01 06:00:00", "2000-01-01 07:00:00", "2000-01-01 08:00:00", "2000-01-01 09:00:00", "2000-01-01 10:00:00", "2000-01-01 11:00:00", "2000-01-01 12:00:00", "2000-01-01 13:00:00", "2000-01-01 14:00:00", "2000-01-01 15:00:00", "2000-01-01 16:00:00", "2000-01-01 17:00:00", "2000-01-01 18:00:00", "2000-01-01 19:00:00", "2000-01-01 20:00:00", "2000-01-01 21:00:00", "2000-01-01 22:00:00", "2000-01-01 23:00:00"]};
-			chartsData.byLatencyChart = {};
-   	   		chartsData.byLatencyChart.data = new google.visualization.DataTable(jsonOutput);
-	        xLabels = jsonOutput.labels;
-	        values = jsonOutput.y;
-	        chartsData.byLatencyChart.data.addColumn('string', 'date');
- 	        chartsData.byLatencyChart.data.addColumn('number', 'emails');
-   	        for(var i=0; i<xLabels.length;i++){
-   	         	chartsData.byLatencyChart.data.addRow([xLabels[i], values[i]]);
-   	        }
-   	             
-  	             // Create and draw the visualization.
-  	     		 new google.visualization.ColumnChart(document.getElementById('latencyChart')).
-  	                 draw(chartsData.byLatencyChart.data,
-  	                      {title:"Email Response Rate in 2011", 
-  	                       width:625, height:200,
-  	                       hAxis: {title: "Year"}}
-  	                 );
-   		//});
-   	};
-
-      
-      function drawCharts() {
-    	  $(".chart_container").each(function() {
-    	    var id = $(this).attr("id");
-    	    if (chartsData[id])
-    	      chartsData[id].chart.draw(chartsData[id].data, chartsData[id].options);
-    	  });
-    	}
-=======
-    function byHour(start, end){
-    	$.getJSON("/emailanalysis/byhour/json/", {start:start, end:end, reply:true, email:"zheny"}, function(data){
-    		drawVisualization(data);
-    	});
-    };
-    function initVisualization(){
-     	$.getJSON("/emailanalysis/topsenders/json/",{},function(data){
-    		 drawVisualization(data);
-    	}); 
-    };
-/*         $.ajax({
-      	  url: 'http://192.168.201.237:8000/emailanalysis/example/json/',
-      	  type: 'POST',
-      	  dataType: 'json',//this is important
-      	  success: function(result) {
-      	    //this is not vital, but it's nice to check the response
-      	    if(typeof result === "object" && result.status === "ok"){
-      	        graphData = result;
-      	        drawVisualization();
-      	    }
-      	  }
-      	}); */
-   // }
-      function drawVisualization(jsonOutput) {
-        // Create and populate the data table.
-
-//         var jsonOutput = {"y": [25.0, 18.0, 17.0, 16.0, 18.0, 11.0, 10.0, 4.0, 7.0, 4.0, 4.0, 12.0, 11.0, 21.0, 39.0, 33.0, 44.0, 53.0, 72.0, 57.0, 58.0, 34.0, 31.0, 33.0],
-//				"labels": ["2000-01-01 00:00:00", "2000-01-01 01:00:00", "2000-01-01 02:00:00", "2000-01-01 03:00:00", "2000-01-01 04:00:00", "2000-01-01 05:00:00", "2000-01-01 06:00:00", "2000-01-01 07:00:00", "2000-01-01 08:00:00", "2000-01-01 09:00:00", "2000-01-01 10:00:00", "2000-01-01 11:00:00", "2000-01-01 12:00:00", "2000-01-01 13:00:00", "2000-01-01 14:00:00", "2000-01-01 15:00:00", "2000-01-01 16:00:00", "2000-01-01 17:00:00", "2000-01-01 18:00:00", "2000-01-01 19:00:00", "2000-01-01 20:00:00", "2000-01-01 21:00:00", "2000-01-01 22:00:00", "2000-01-01 23:00:00"]};
-       
-//var jsonOutput = {[304, 257, 160, 125, 87, 71, 70, 68, 67, 64, 59, 57, 55, 54, 53, 48, 47, 41, 38], ["sirrice@gmail.com", "shwang08@gmail.com", "tiffchen08@gmail.com", "farm.cp@gmail.com", "yunjiema@gmail.com", "karenshu@gmail.com", "brett.warne@gmail.com", "winkler.em@gmail.com", "niv.chandra@gmail.com", "ravdawg@gmail.com", "melty710@gmail.com", "irenefan@gmail.com", "jen.lee.ing@gmail.com", "wysun07@gmail.com", "wenfai@gmail.com", "shi.jiarui@gmail.com", "jtaschereau84@gmail.com", "hkorre@gmail.com", "jlee08@gmail.com"]};
-
-        var data = new google.visualization.DataTable(jsonOutput);
-
-        
-        var xLabels = jsonOutput.labels;
-        var values = jsonOutput.y;
-        data.addColumn('string', 'date');
-        data.addColumn('number', 'emails');
-        for(var i=0; i<xLabels.length;i++){
-        	data.addRow([xLabels[i], values[i]]);
-        }
-        
-        // Create and draw the visualization.
-		 new google.visualization.ColumnChart(document.getElementById('visualization')).
-            draw(data,
-                 {title:"Eugene's Emails in 2011", 
-                  width:600, height:200,
-				  legend: "none", 
-				  vAxis: {title : "# Emails"},
-                  hAxis: {title: "Year", slantedTextAngle: 90, showTextEvery: 6}
-				 }
-
-            ); 
-      }
-      
+var chartsData = {};
+var startdate, enddate, email;
 
 
-      $(document).ready(function() { 
-		byHour("2010-1-1", "2011-1-1");
-	  	makeDateSlider("#dateslider", {bounds:{min:new Date(2004,0,1), max:new Date(2012,0,1)}}, byHour);
-	});
->>>>>>> 8e0d5dd81c411b6b9e8141094881a3464a3facf5
+function filterByEmail(){
+		var addresses = $("input[name=emailFilter]").val().replace(/[,\s]+$/g, '');
+		opts = {};
+		opts['start'] = startdate;
+		opts['end'] = enddate;
+		opts['email'] = addresses;
+		
+   		$.getJSON("/emailanalysis/byhour/json/", opts, function(data){
+			drawChart(data, chartsData['hourChart']);
+   		});	  
+		opts['lat'] = 'True';
+   		$.getJSON("/emailanalysis/byhour/json/", opts, function(data){
+			drawChart(data, chartsData['latencyChart']);
+   		}); 		
+	}	
+	
+function rerenderAll() {
+	getTopSendersList("foo", startdate, enddate);
+	filterByEmail();
+}
+
+function updateDateRange(start, end) {
+	startdate = start;
+	enddate = end;
+	rerenderAll();		
+}
+
+
+
+
+
+
+function init() {	
+    $.getJSON("/emailanalysis/contacts/json/", function(data) {
+			make_autocomplete("contacts_list", data);
+		});
+	chartsData = {'hourChart' : setupChart('hourChart', "# emails/hour"),
+				'latencyChart' : setupChart('latencyChart', "avg # hours before reply")}
+	//filterByEmail();
+	getTopSendersList("foo");
+	
+	makeDateSlider("#dateslider", {bounds:{min:new Date(2004,0,1), max:new Date(2012,0,1)}}, updateDateRange);
+	
+//	$(window).resize($(".core_gallery_table"));
+}
+
+
+
+google.setOnLoadCallback(init);
+	
+     /*  width:625, height:200,*/
     </script>
 	
 <!--END GRAPH CRAP-->
@@ -246,6 +84,7 @@ li {
 </head>
 	
 <body>
+	
 <div id="logo">
 	<a href=""><img src="/media/images/logo-sm.png"/></a> <!--{{MEDIA_URL}}images/logo-sm.png-->
 </div>
@@ -265,56 +104,34 @@ li {
 	
 </div>
 <div id="results">
-<<<<<<< HEAD
-	<div class="category" id="general">Amount of Responses</div>
-		<div class="chart_container" id="hourChart"></div>
-		<div class="description">This shows the average number of emails you send over time. Higher number = more emails sent. </div>
+
+	
 	<div class="category" id="topcontacts">Top Email Contacts</div>
-		<!--TOP FRIENDS HERE-->
 		<div class="description">Shows you who you are most frequently in contact with.</div>
+		<div id="foo"></div>
+
+	<div style="height: 20pt;">	&nbsp;</div>
+
+		<div style="width:500px; height:30px; display: inline; clear:both;" id="dateslider" class="dateSlider"></div>
+		  <div><form id="filterform" onSubmit="filterByEmail(); return false;">
+			<input class="maininput" name="emailFilter" id="contacts_list" type="text" style="width:500px" /> 
+		   	<input type="submit" id="saveButton" value="Filter"></input>
+		  </form></div>
+
+
+	<div class="category" id="general">Amount of Responses</div>
+		<div class="description">This shows the average number of emails you send over time. Higher number = more emails sent. </div>
+		<div class="chart_container" id="hourChart"></div>
+
 	<div class="category" id="responsetime">Response Time</div>
+		<div class="description">The time it takes to receive a reply to your emails on an hourly basis.</div>
 		<div class="chart_container" id="latencyChart"></div>
-		<div class="description">whatever</div>
 	<div class="category" id="responserate">Response Rate</div>
-		<div class="chart_container" id=""></div>
 		<div class="description">This </div>
+		<div class="chart_container" id=""></div>
+
 </div>
 </body>
 </html>
-=======
-	<div class="category" id="general">General Stats</div>
-	<div id="visualization"></div>
-	<form action="#"><!--<input name="min" /><input name="max" />-->
-		<div id="dateslider" class="dateSlider"></div> 
-  	</form>
-	<div class="description">This shows the average number of emails you send over time. Higher number = more emails sent. </div>
-	<div class="category" id="re_overall">Personal Response Time</div>
-	<!--INSERTGRAPH-->
-	<img src="" width="900px" height="300px" alt="graph here"/>
-	<div class="description">peepeeppee</div>
-</div>
-</body>
-</html>
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
->>>>>>> 8e0d5dd81c411b6b9e8141094881a3464a3facf5
-	
 	
 	

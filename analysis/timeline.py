@@ -15,6 +15,8 @@ class BDLineData(object):
         cur = conn.cursor()
         tmpdata = {}
         labels = []
+        maxs = [0,0]
+
 
         i = 0
         for title, sql in queries:
@@ -25,6 +27,8 @@ class BDLineData(object):
                 d[date.strftime('%Y-%m-%d')] = (lat, count)
                 if not start or date < start: start = date
                 if not end or date > end: end = date
+                maxs[0] = max(maxs[0], lat)
+                maxs[1] = max(maxs[1], count)
             tmpdata[title] = d
 
         if start == None:
@@ -44,9 +48,8 @@ class BDLineData(object):
 
         data = {}
         for title, d in tmpdata.items():
-            print d.keys()
-            print xs
             data[title] = [x in d and d[x][statid] or 0 for x in xs]
+            data[title][-1] = maxs[statid]
         data['labels'] = xs        
 
         cur.close()

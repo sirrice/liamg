@@ -9,10 +9,10 @@ function setupChart(name, title) {
 
   	             // Create and draw the visualization.
    chart.chart = new google.visualization.ColumnChart(document.getElementById(name));
-	chart.options = {title: title,
-					width:600,
-					height:400,
-					hAxis: {showTextEvery: 6}, legend: "none"};
+	chart.options = {width:625, height:200,
+					hAxis: {showTextEvery: 6}, 
+					vAxis: {title: title},
+					legend: "none"};
 	chart.chart.draw(chart.data, chart.options);	
 	return chart;
 }
@@ -53,6 +53,13 @@ function getTopSendersList(id, start, end){
 		table.attr("id", "table_" + i);
 		$("#" + id).append(table);
 
+		var tr = $("<tr></tr>");
+		var td1 = $("<th></th>").text("Friend");
+		var td2 = $("<th></th>").text("# emails");
+		var td3 = $("<th></th>").text("#/week: " + start+ " - " + end);
+		table.append(tr.append(td1).append(td2).append(td3));
+ 
+
 		for (var i = 0; i < data.labels.length; i++) {
 			email = data.labels[i];
 			count = data.y[i];
@@ -63,10 +70,10 @@ function getTopSendersList(id, start, end){
 			
 			var tr = $("<tr></tr>");
 			var td1 = $("<td class='email'></td>").text(email);
-			var td2 = $("<td class='count'></td>").text(count + " emails");
+			var td2 = $("<td class='count'></td>").text(count );
 			var td3 = $("<td class='spark'></td>");
 			var spark = $("<span></span>").attr("id", "spark_" + i);
-			td3.append("<label>"+start+"</label>").append(spark).append("<label>"+end+"</label>");
+			td3.append(spark);
 			tr.append(td1).append(td2).append(td3);
 			table.append(tr)
 			loadSpark(email, spark, start, end);				
@@ -80,7 +87,7 @@ function loadSpark(email, el, start, end) {
 			$.getJSON("/emailanalysis/getcount/json/", {start:start, end:end, granularity:"week", email:email}, function(data) {
 				var options = {
 					type : "line",
-					width: 200,
+					width: 250,
 					height: 25
 				}
 				el.sparkline(data.y, options);
