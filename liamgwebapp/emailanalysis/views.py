@@ -1,7 +1,9 @@
 # Create your views here.
 
-# import django modules
+# import python libraries
 import sys,os
+
+# import django modules
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -10,18 +12,22 @@ from django.core.mail import send_mail
 from django.core.mail import EmailMessage
 from django.contrib.auth.models import User
 from django.core.context_processors import csrf
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django import forms
 
+# import modules for processing data
 from dateutil.parser import parse
 import datetime #need to get today's date as the default
 import json
 
-# append db dir to python path
+# add path for analysis scripts
 sys.path.append(os.path.join(os.getcwd(), "../analysis"))
-print sys.path
 
+# import analysis modules
 import topsenders
 from statsbyhour import EveryoneByHour, LineData
-from django import forms
+
 
 class ContactForm(forms.Form):
     subject = forms.CharField(max_length=100)
@@ -34,20 +40,29 @@ class LoginForm(forms.Form):
     username = forms.CharField(max_length=100)
     password = forms.CharField(max_length=100)
 
+class CreateUserForm(forms.Form):
+    username = forms.CharField(max_length=100)
+    email = forms.EmailField()
+    password = forms.CharField(max_length=100)
+
 # index view
 def index(request):
-    if request.user.is_autheticated():
-        print 'user kewl'
+    if request.user.is_authenticated():
+#        return HttpResponseRedirect(reverse('emailanalysis.views.results'))
+        return render_to_response('emailanalysis/index.html')
     else:
         return HttpResponseRedirect(reverse('emailanalysis.views.login_view'))
 #        return HttpResponseRedirect('emailanalysis/login')
     return render_to_response('emailanalysis/index.html')
 
+def results(request):
+    return render_to_response('emailanalysis/results.html')
+
 # log in view
 def login_view(request):
 
     if request.method == 'POST':
-        form = ContactForm(request.POST)
+        form = LoginForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
@@ -56,27 +71,55 @@ def login_view(request):
             if user is not None:
                 if user.is_active:
                     login(request,user)
-                    return HttpResponseRedirect('/login successful/') # Redirect after POST
-                else:
-                    return HttpResponseRedirect('/user not recognized/') # Redirect after POST
-            
-            return HttpResponse('mail sent')
+                    return HttpResponse('login successful') # Return success
 
+                else:
+                    return HttpResponse('user not recognized') # Return fail
+            return HttpResponse('user does not exist')
+        else:
+            return HttpResponse('form invalid')
     else:
         form = LoginForm()
         c = {}
         c.update(csrf(request))
 
-        return render_to_response('emailanalysis/sendmail.html', {
+        return render_to_response('emailanalysis/login.html', {
             'form': form,
             },context_instance=RequestContext(request))
 
+# create new user
+def create_user(request):
+
+    if request.method == 'POST':
+        form = CreateUserForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+
+            # create user
+            user = User.objects.create_user(username,email,password)
+
+            return HttpResponse('user created')
+        else:
+            return HttpResponse('form invalid')
+    else:
+        form = CreateUserForm()
+        c = {}
+        c.update(csrf(request))
+
+        return render_to_response('emailanalysis/newuser.html', {
+            'form': form,
+            },context_instance=RequestContext(request))
+    
 
 # log out user
 def logout_view(request):
     logout(request)
+    return HttpResponse('user logged out')
 
 # get json data
+@login_required(login_url='/emailanalysis/login/')
 def getjson(request, datatype):
     # db call to get data
     if datatype == 'topsenders':
@@ -112,7 +155,7 @@ def getjson(request, datatype):
     # return data as json
     return HttpResponse(json.dumps(data), mimetype="application/json")
 
-
+@login_required
 def sendmail(request):
 
     if request.method == 'POST':
