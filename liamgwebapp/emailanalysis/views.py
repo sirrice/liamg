@@ -27,7 +27,8 @@ sys.path.append(os.path.join(os.getcwd(), "../analysis"))
 # import analysis modules
 import topsenders
 from statsbyhour import EveryoneByHour, LineData
-
+from timeline import *
+from contacts import Contacts
 
 class ContactForm(forms.Form):
     subject = forms.CharField(max_length=100)
@@ -121,6 +122,22 @@ def logout_view(request):
 # get json data
 @login_required(login_url='/emailanalysis/login/')
 def getjson(request, datatype):
+    req = request.REQUEST
+
+    start = req.get('start', None)
+    end = req.get('end', None)
+    daysofweek = req.get('daysofweek', '')
+    reply = req.get('reply', None)
+    lat = bool(req.get('lat', False))
+    email = req.get('email', None)
+    granularity = req.get('granularity', None)
+
+    if start: start = parse(start)
+    if end: end = parse(end)
+    if daysofweek: daysofweek = daysofweek.split(",")
+    if reply is not None: reply = bool(reply)
+
+    
     # db call to get data
     if datatype == 'topsenders':
         
@@ -132,22 +149,30 @@ def getjson(request, datatype):
         
 
     elif datatype == "byhour":
-        req = request.REQUEST
-
-        start = req.get('start', None)
-        end = req.get('end', None)
-        daysofweek = req.get('daysofweek', '')
-        lat = bool(req.get('lat', False))
-
-        if start: start = parse(start)
-        if end: end = parse(end)
-        if daysofweek: daysofweek = daysofweek.split(",")
-
         ebh = EveryoneByHour()
         queries = []
         queries.append(('y', ebh.get_sql(lat, start, end, daysofweek)))
         ld = LineData()
         data = ld.get_data(queries)
+
+    elif datatype == "contacts":
+        contacts = Contacts()
+        data = contacts.get_data()
+
+    elif datatype == "getlatency":
+        bd = ByDay()
+        queries = []
+        queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
+                                        granularity=granularity, email=email)))
+        ld = BDLineData()
+        data = ld.get_data(queries, 0, granularity=granularity)
+    elif datatype == "getcount":
+        bd = ByDay()
+        queries = []
+        queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
+                                        granularity=granularity, email=email)))
+        ld = BDLineData()
+        data = ld.get_data(queries, 1, granularity=granularity)
 
     else:
         return HttpResponse('json call not recognized')
