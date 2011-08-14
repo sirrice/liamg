@@ -19,7 +19,8 @@ urlpatterns = patterns('emailanalysis.views',
     (r'^logout/$', 'logout_view'),
     (r'^createuser/$', 'create_user'),
     (r'^createuser/submit/$', 'create_user'),
-    (r'^results/$', 'results'),                       
+    (r'^results/$', 'results'),
+    (r'^pie/$', 'pie'),                                              
 
     # Examples:
     # url(r'^$', 'liamgwebapp.views.home', name='home'),

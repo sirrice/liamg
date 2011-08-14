@@ -59,6 +59,10 @@ def index(request):
 def results(request):
     return render_to_response('emailanalysis/results.html',context_instance=RequestContext(request))
 
+
+def pie(request):
+    return render_to_response('emailanalysis/pie.html',context_instance=RequestContext(request))
+
 # log in view
 def login_view(request):
 
@@ -166,14 +170,15 @@ def getjson(request, datatype):
         queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
                                         granularity=granularity, email=email)))
         ld = BDLineData()
-        data = ld.get_data(queries, 0, granularity=granularity)
+        data = ld.get_data(queries, 0, granularity=granularity, start=start, end=end)
+
     elif datatype == "getcount":
-        bd = ByDay()
+        bd = ByDayNorm()
         queries = []
         queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
                                         granularity=granularity, email=email)))
         ld = BDLineData()
-        data = ld.get_data(queries, 1, granularity=granularity)
+        data = ld.get_data(queries, 1, granularity=granularity, start=start, end=end)
 
     else:
         return HttpResponse('json call not recognized')
