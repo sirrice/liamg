@@ -1,4 +1,48 @@
 
+
+
+
+	
+function setupChart(name, title) {
+	var chart = {};
+	chart.name = name;
+   	chart.data = new google.visualization.DataTable({'labels': [], 'y' : []});
+	chart.data.addColumn('string', 'date');
+ 	chart.data.addColumn('number', 'emails');
+
+  	             // Create and draw the visualization.
+   chart.chart = new google.visualization.ColumnChart(document.getElementById(name));
+	chart.options = {title: title,
+					width:600,
+					height:400,
+					hAxis: {showTextEvery: 6}, legend: "none"};
+	chart.chart.draw(chart.data, chart.options);	
+	return chart;
+}
+function drawChart(data, chart) {
+	chart.data = new google.visualization.DataTable(data);
+	xLabels = data.labels;
+    values = data.y;
+    chart.data.addColumn('string', 'date');
+    chart.data.addColumn('number', 'emails');
+    for(var i=0; i<xLabels.length;i++){
+     	chart.data.addRow([xLabels[i], values[i]]);
+    }
+
+	chart.chart = new google.visualization.ColumnChart(document.getElementById(chart.name));
+    chart.chart.draw(chart.data, chart.options);
+
+}
+
+
+
+
+
+
+
+
+
+
 function getTopSendersList(id, start, end){
 
 	if (start === undefined || start == null) start = "2010-1-1";
@@ -80,6 +124,7 @@ function make_autocomplete(id, data) {
 				return false;
 			},
 			select: function( event, ui ) {
+				return;
 				var terms = split( this.value );
 				// remove the current input
 				terms.pop();
