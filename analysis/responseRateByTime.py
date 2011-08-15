@@ -7,23 +7,23 @@ import json
 
 import re
 
-modes = ["day", "hour"]
+#modes = ["day", "hour"]
 
-mymode = sys.argv[1]
-if mymode not in modes:
-    sys.stderr.write("invalid mode!: %s\n" % mymode)
-    exit(1)
-startD = sys.argv[2]
-endD = sys.argv[3]
-emailAddy = sys.argv[4]
-replyAddy = ""
-SINGLE_REPLIER = False
-if len(sys.argv) > 5:
-    SINGLE_REPLIER = True
-    replyAddy = sys.argv[5]
+#mymode = sys.argv[1]
+#if mymode not in modes:
+#    sys.stderr.write("invalid mode!: %s\n" % mymode)
+#    exit(1)
+#startD = sys.argv[2]
+#endD = sys.argv[3]
+#emailAddy = sys.argv[4]
+#replyAddy = ""
+#SINGLE_REPLIER = False
+#if len(sys.argv) > 5:
+#    SINGLE_REPLIER = True
+#    replyAddy = sys.argv[5]
 
-startDT = parse(startD)
-endDT = parse(endD)
+#startDT = parse(startD)
+#endDT = parse(endD)
 
 def make_human_readable(mode, ind):
     if mode == "day":
@@ -49,7 +49,7 @@ def make_human_readable(mode, ind):
     return indStr
 
 def get_index(mode, thetime):
-    thetime = parse(thetime)
+    #thetime = parse(thetime)
     if mode == "day":
         ret = thetime.weekday()
     else:
@@ -88,14 +88,26 @@ class ModeDatum:
             indexStr = make_human_readable(self.thismode, i)
             rt = self.masterMap[i].getResponseRate()
             print "%9s %6d %6d %6.2f%% %s" % (indexStr, self.masterMap[i].numSent, self.masterMap[i].numReplied, rt, "*"*int(rt / 5.0))
+    def returnJsonDictionary(self):
+        ret = dict()
+        ret["labels"] = []
+        ret["y"] = []
+        for key,vals in self.masterMap.items():
+            ret["labels"].append(make_human_readable(self.thismode, key))
+            ret["y"].append(vals.getResponseRate())
+        print ret
+        return ret
 
-def get_response_rate(mode, start, end):
-    global emailAddy, replyAddy, SINGLE_REPLIER
+def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
+    if replyAddy == "":
+        SINGLE_REPLIER = False
+    else:
+        SINGLE_REPLIER = True
     typeMap = dict()
     typeMap["tos"] = ModeDatum(mode)
-    typeMap["ccs"] = ModeDatum(mode)
-    typeMap["bccs"] = ModeDatum(mode)
-    conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
+   # typeMap["ccs"] = ModeDatum(mode)
+   # typeMap["bccs"] = ModeDatum(mode)
+   # conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
     c = conn.cursor()
     try:
         myid = int(c.execute("select id from contacts where email = '%s';" % emailAddy).fetchone()[0])
@@ -106,7 +118,9 @@ def get_response_rate(mode, start, end):
             execCode_Denominator = "select msgs.date,msgs.id,msgs.subj from msgs inner join %s on msgs.id = %s.msg and msgs.fr = %d and msgs.date >= '%s' and msgs.date <= '%s'" % (tbl, tbl, myid, start, end)
             if SINGLE_REPLIER:
                 execCode_Denominator += " and %s.cid = %d" % (tbl, replid)
+            print(execCode_Denominator)
             res = c.execute(execCode_Denominator).fetchall()
+            print res
             for item in res:
                 if SINGLE_REPLIER and int(item[1]) in msgIds:
                     continue
@@ -129,10 +143,13 @@ def get_response_rate(mode, start, end):
     except Exception, e:
         print "Caught exception"
         print >> sys.stderr, e
-    return typeMap
+    return typeMap["tos"].returnJsonDictionary()
 
-mytable = get_response_rate(mymode, startD, endD)
 
-for typ,tbl in mytable.items():
-    print typ
-    tbl.printMe()
+if __name__ == "__main__":
+
+    mytable = get_response_rate(mymode, startD, endD)
+
+    for typ,tbl in mytable.items():
+        print typ
+        tbl.printMe()

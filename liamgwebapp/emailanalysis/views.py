@@ -30,6 +30,7 @@ sys.path.append(os.path.join(os.getcwd(), ".."))
 
 # import analysis modules
 import topsenders
+import responseRateByTime
 from statsbyhour import *
 from timeline import *
 from contacts import Contacts
@@ -218,7 +219,15 @@ def getjson(request, datatype):
         end = req.get ('end', None)
         top = 10       
         data = topsenders.get_top_senders(top, start, end, conn)
-        
+    
+    elif datatype == "getrate":
+        req = request.REQUEST
+        start = req.get('start', None)
+        end = req.get('end', None)
+        emailAddy = curruser.username
+        replyAddy = req.get('replyAddy', None)
+        mode = req.get('mode', None)
+        data = responseRateByTime.get_response_rate(mode, start, end, emailAddy, replyAddy, conn)
 
     elif datatype == "byhour":
         ebh = RepliesByHour()
