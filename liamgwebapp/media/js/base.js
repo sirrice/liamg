@@ -64,13 +64,13 @@ function getTopSendersList(id, start, end){
 		for (var i = 0; i < data.labels.length; i++) {
 			email = data.labels[i];
 			count = data.y[i];
-			
+			var emaildisp = email;
 			if (email.length > 23)
-			 email = email.substr(0,10) + "..." + email.substr(email.length-10,10)
+			 var emaildisp = email.substr(0,10) + "..." + email.substr(email.length-10,10)
 			
 			
 			var tr = $("<tr></tr>");
-			var td1 = $("<td class='email'></td>").text(email);
+			var td1 = $("<td class='email'></td>").text(emaildisp).attr("title", email);
 			var td2 = $("<td class='count'></td>").text(count );
 			var td3 = $("<td class='spark'></td>");
 			var spark = $("<span></span>").attr("id", "spark_" + i);
