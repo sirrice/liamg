@@ -7,16 +7,18 @@ from datetime import timedelta
 from optparse import OptionParser
 import re
 
-def get_top_sent(num, start, end, user_sent_to, conn):
+def get_top_sent(num, start, end, user, conn):
     c = conn.cursor()
     try:
         #identify the user that we want to get the emails for
-        user = 'sirrice@gmail.com'
         dateStr = " date >= '" + start + "' and date < '"+  end + "'"
-        #SQL command to group by email
-        sqlCmd = "select email,count(*) as c from contacts inner join (select cid,date,subj from (select id,date,subj from msgs where fr = (select id from contacts where email = '" + user +"') and" + dateStr +") as 'msgids' inner join tos on tos.msg = msgids.id) as 'cids' on contacts.id = cids.cid group by email order by c desc limit " + num + ";"
-        print sqlCmd
+        print num
 
+        #SQL command to group by email
+        sqlCmd = "select email,count(*) as c from contacts inner join (select cid, date, subj from (select id, date, subj from msgs where fr = (select id from contacts where email = '%s') and %s) as 'msgids' inner join tos on tos.msg = msgids.id) as 'cids' on contacts.id = cids.cid group by email order by c desc limit %d;" % (user, dateStr, num)
+
+        print sqlCmd
+        
         res = c.execute(sqlCmd)
         res = res.fetchall()
         
@@ -31,17 +33,20 @@ def get_top_sent(num, start, end, user_sent_to, conn):
             
         print emails
         print number
+        dictionary = dict()
+        dictionary["labels"] = emails
+        dictionary["y"] = number
+        return dictionary
 
+        
     except:
         print "error in connection"
 
-def get_total_for_user(emails, user_sent_to):
-    total_sent_to_user = 0
-    for item in emails:
-        if item == user_sent_to:
-            total_sent_to_user += 1
-        
-    return total_sent_to_user
+
+
+
+
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 5:
@@ -54,6 +59,6 @@ if __name__ == "__main__":
         exit(1)
 
     conn = sqlite3.connect('../mail.db', detect_types = sqlite3.PARSE_DECLTYPES)  
-    get_top_sent(num, start, end, user_sent_to, conn)
+    get_top_sent(num, start, end, 'sirrice@gmail.com', conn)
 
 
