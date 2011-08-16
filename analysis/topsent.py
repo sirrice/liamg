@@ -1,3 +1,5 @@
+#Draft of the top people the user sends emails to - need to double check the sql command
+
 import sys, random, smtplib, time, urllib
 import sqlite3, email, imaplib, math
 from dateutil.parser import parse
