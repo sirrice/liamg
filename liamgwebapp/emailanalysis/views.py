@@ -77,7 +77,7 @@ def pie(request):
 
 # log in view
 def login_view(request):
-
+    
     if request.method == 'POST':
         form = LoginForm(request.POST)
 
@@ -149,7 +149,8 @@ def login_view(request):
         else:
             return HttpResponse('form invalid')
     else:
-        form = LoginForm(initial={'username':'default@default.com','password':'default','defaultdb':True})
+#        form = LoginForm(initial={'username':'default@default.com','password':'default','defaultdb':True})
+        form = LoginForm(initial={'username':'','password':'','defaultdb':False})
         c = {}
         c.update(csrf(request))
 
@@ -223,7 +224,6 @@ def getjson(request, datatype):
     
     elif datatype == "topsent":
         req = request.REQUEST
-        print conn
         start = req.get('start', None)
         end = req.get('end', None)
         top = 10 
