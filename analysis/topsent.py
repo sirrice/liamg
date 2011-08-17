@@ -17,17 +17,14 @@ def get_top_sent(num, start, end, user, conn):
         #SQL command to group by email
         sqlCmd = "select email,count(*) as c from contacts inner join (select cid, date, subj from (select id, date, subj from msgs where fr = (select id from contacts where email = '%s') and %s) as 'msgids' inner join tos on tos.msg = msgids.id) as 'cids' on contacts.id = cids.cid group by email order by c desc limit %d;" % (user, dateStr, num)
 
-        print sqlCmd
-        
+        #execute the sql command 
         res = c.execute(sqlCmd)
         res = res.fetchall()
         
-        total_emails_sent = 0
         emails = []
         number = []
         #push the emails into an array and count the total
         for item in res:
-            total_emails_sent +=1
             emails.append(item[0])
             number.append(item[1])
             
@@ -39,7 +36,8 @@ def get_top_sent(num, start, end, user, conn):
         return dictionary
 
         
-    except:
+    except Exception, e:
+        print e
         print "error in connection"
 
 
