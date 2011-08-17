@@ -30,7 +30,7 @@ def download_headers(imap_hostname, user, passw, conn):
      (SINCE 01-Jan-2011)
     """
     label_string = "[Gmail]/All Mail"
-    search_string = "(SINCE 13-Aug-2011)"
+    search_string = "(SINCE 1-Jan-2009)"
 
     
     imap_conn = imaplib.IMAP4_SSL(imap_hostname)
