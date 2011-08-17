@@ -31,6 +31,7 @@ sys.path.append(os.path.join(os.getcwd(), ".."))
 # import analysis modules
 import topsenders
 import responseRateByTime
+import topsent
 from statsbyhour import *
 from timeline import *
 from contacts import Contacts
@@ -210,7 +211,7 @@ def getjson(request, datatype):
     print curruser.dbname
 
     conn = sqlite3.connect(curruser.dbname, detect_types=sqlite3.PARSE_DECLTYPES)
-
+    
     # db call to get data
     if datatype == 'topsenders':
         
@@ -220,6 +221,16 @@ def getjson(request, datatype):
         top = 10       
         data = topsenders.get_top_senders(top, start, end, conn)
     
+    elif datatype == "topsent":
+        req = request.REQUEST
+        print conn
+        start = req.get('start', None)
+        end = req.get('end', None)
+        top = 10 
+        email = curruser.username
+        data = topsent.get_top_sent(top, start, end, email, conn)
+        print email
+
     elif datatype == "getrate":
         req = request.REQUEST
         start = req.get('start', None)
