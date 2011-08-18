@@ -19,6 +19,14 @@
 <script src="/media/js/sparklines.js"></script>
 
 
+<!--add to css later-->
+<style type = "text/css">
+  a:link {text-decoration: none;}
+  a:visited {text-decoration:none;}
+  a:hover {text-decoration:underline;}
+</style>
+
+
 <script type="text/javascript">
       google.load('visualization', '1', {packages: ['corechart']});
 
@@ -99,13 +107,15 @@ function init() {
 	<a href=""><img src="/media/images/logo-sm.png"/></a> <!--{{MEDIA_URL}}images/logo-sm.png-->
 </div>
 <div id="dashboard">
-	<h1>Overview</h1>
+	<h1>Received E-Mail</h1>
 	<ul>
-	<li>Top Email Contacts<!--Ranked by # of emails in conversation over a specific time--></li>
-	<li>Amount of Responses<!--# of emails people send you over a time range--></li>
+	  <li><a href="#Top">Top Email Contacts<!--Ranked by # of emails in conversation over a specific time--></a></li>
+	  <li><a href="#Count">Responses</a></li>
+	<li><a href="#Time">Response Time</a></li>
+	<li><a href="#Rate">Response Rate</a></li>
 	</ul>
 
-	<h1>Time-Based Metrics</h1>
+	<h1>Sent E-Mail</h1>
 	<ul>
 	<li>Response Time<!--People's average response time to you over a time range--></li>
 	<li>Response Rate<!-- of time people will respond to you over a time range--></li>
@@ -113,22 +123,24 @@ function init() {
 
 </div>
 <div id="results">
-	
-	<div class="category" id="topcontacts">Top Email Contacts</div>
+	 <a name="Top"></a>	
+	 <div class="category" id="topcontacts">Top Email Responders</div>
 		<div class="description">Shows you who you are most frequently in contact with.</div>
 		<div id="foo"></div>
 
 	<div style="height: 20pt;">	&nbsp;</div>
 
-
-	<div class="category" id="general">Amount of Responses</div>
+	<a name="Count"></a>
+	<div class="category" id="general">Responses</div>
 		<div class="description">Number of emails you received. </div>
 		<div class="chart_container" id="hourChart"></div>
 
+	<a name="Time"></a>
 	<div class="category" id="responsetime">Response Time</div>
 		<div class="description">The time it takes to receive a reply to your emails on an hourly basis.</div>
 		<div class="chart_container" id="latencyChart"></div>
 
+	<a name="Rate"></a>
 	<div class="category" id="responserate">Response Rate</div>
 		<div class="description">This rate which people respond to your emails.</div>
 		<div class="chart_container" id="rateChart"></div>
