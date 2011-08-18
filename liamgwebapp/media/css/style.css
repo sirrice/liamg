@@ -114,6 +114,9 @@ li {
 	width:300px;
 }
 
+a:link {text-decoration: none;}
+a:hover {text-decoration: underline;}
+a:visited {text-decoration: none;}
 
 
 #foo table {width: 100%;}
