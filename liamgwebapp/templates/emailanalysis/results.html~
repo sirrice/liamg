@@ -68,10 +68,8 @@ function init() {
 				'latencyChart' : setupChart('latencyChart', "Avg hours before reply")}
 	//filterByEmail();
 	getTopSendersList("foo");
-      var maxDate = new Date();
-      var one_year_ago = new Date().setDate(maxDate.getDate() - 365);
-      var minDate = new Date().setDate(maxDate.getDate() - 4*365) //get 4 years ago
-	makeDateSlider("#dateslider", {bounds:{min:minDate, max:maxDate}, defaultValues:{min:one_year_ago, max:maxDate}}, updateDateRange);
+	
+	makeDateSlider("#dateslider", {bounds:{min:new Date(2004,0,1), max:new Date(2012,0,1)}}, updateDateRange);
 	
 //	$(window).resize($(".core_gallery_table"));
 }
