@@ -42,8 +42,13 @@ function filterByEmail(){
 		opts['lat'] = 'True';
    		$.getJSON("/emailanalysis/byhour/json/", opts, function(data){
 			drawChart(data, chartsData['latencyChart']);
-   		}); 		
-	}	
+                }); 
+      opts['mode']= 'hour';
+      $.getJSON("/emailanalysis/getrate/json/", opts, function(data){
+          drawChart(data, chartsData['rateChart']);
+      });
+      
+}	
 	
 function rerenderAll() {
 	getTopSendersList("foo", startdate, enddate);
@@ -57,21 +62,18 @@ function updateDateRange(start, end) {
 }
 
 
-
-
-
 function init() {	
     //$.getJSON("/emailanalysis/contacts/json/", function(data) {
 	//		make_autocomplete("contacts_list", data);
 	//	});
-	chartsData = {'hourChart' : setupChart('hourChart', "# Emails"),
-				'latencyChart' : setupChart('latencyChart', "Avg hours before reply")}
+      chartsData = {'hourChart' : setupChart('hourChart', "# Emails"),
+				'latencyChart' : setupChart('latencyChart', "Avg hours before reply"), 'rateChart': setupChart('rateChart', "Avg response rate")}
 	//filterByEmail();
-	getTopSendersList("foo");
+      getTopSendersList("foo");
       var maxDate = new Date();
       var one_year_ago = new Date().setDate(maxDate.getDate() - 365);
-      var minDate = new Date().setDate(maxDate.getDate() - 4*365) //get 4 years ago
-	makeDateSlider("#dateslider", {bounds:{min:minDate, max:maxDate}, defaultValues:{min:one_year_ago, max:maxDate}}, updateDateRange);
+      var minDate = new Date().setDate(maxDate.getDate() - 4 * 365) //get 4 years ago
+      makeDateSlider("#dateslider", {bounds:{min:minDate, max:maxDate}, defaultValues:{min:one_year_ago, max:maxDate}}, updateDateRange);
 	
 //	$(window).resize($(".core_gallery_table"));
 }
@@ -117,9 +119,10 @@ function init() {
 	<div class="category" id="responsetime">Response Time</div>
 		<div class="description">The time it takes to receive a reply to your emails on an hourly basis.</div>
 		<div class="chart_container" id="latencyChart"></div>
-	<!--<div class="category" id="responserate">Response Rate</div>
-		<div class="description">This </div>
-		<div class="chart_container" id=""></div>-->
+
+	<div class="category" id="responserate">Response Rate</div>
+		<div class="description">This rate which people respond to your emails.</div>
+		<div class="chart_container" id="rateChart"></div>
 
 </div>
 

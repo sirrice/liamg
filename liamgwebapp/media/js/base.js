@@ -39,9 +39,6 @@ function drawChart(data, chart) {
 
 
 
-
-
-
 function getTopSendersList(id, start, end){
 
     //get the most recent date
@@ -152,15 +149,6 @@ function make_autocomplete(id, data) {
 
 
 
-
-
-
-
-
-
-
-
-
 	function updateValuesChanging(event, ui){
 		displayValues(ui.label, ui.values)
 	}
@@ -184,7 +172,7 @@ function make_autocomplete(id, data) {
 		
 		var slider = $(selector)
 			.dateRangeSlider(options)
-			.bind("valuesChanging", function(event, ui){updateValuesChanging(event, ui);})
+       			.bind("valuesChanging", function(event, ui){updateValuesChanging(event, ui);})
 			.bind("valuesChanged", function(event, ui){updateValuesChanged(event, ui);})
 			.addClass("ui-rangeSlider-dev");
 		displayValues(slider, slider.rangeSlider("values"));

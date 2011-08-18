@@ -44,8 +44,13 @@ function drawChart(data, chart) {
 
 function getTopSendersList(id, start, end){
 
+    //get the most recent date
+    var date = new Date();
+    var dd = date.getDate(); var mm = date.getMonth() + 1; var yyyy = date.getFullYear();
+    var todayDateString = yyyy + '-' + mm + '-' + dd;
+    
 	if (start === undefined || start == null) start = "2010-1-1";
-	if (end === undefined || end == null) end = "2011-8-14";
+	if (end === undefined || end == null) end = todayDateString;
 
  	$.getJSON("/emailanalysis/topsenders/json/",{start:start, end:end},function(data){
 		var email, count;

@@ -236,7 +236,7 @@ def getjson(request, datatype):
         start = req.get('start', None)
         end = req.get('end', None)
         emailAddy = curruser.username
-        replyAddy = req.get('replyAddy', None)
+        replyAddy = req.get('email', None)
         mode = req.get('mode', None)
         data = responseRateByTime.get_response_rate(mode, start, end, emailAddy, replyAddy, conn)
 
