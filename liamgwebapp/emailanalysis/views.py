@@ -72,8 +72,8 @@ def results(request):
     return render_to_response('emailanalysis/results.html',context_instance=RequestContext(request))
 
 
-def pie(request):
-    return render_to_response('emailanalysis/pie.html',context_instance=RequestContext(request))
+#def pie(request):
+ #   return render_to_response('emailanalysis/pie.html',context_instance=RequestContext(request))
 
 # log in view
 def login_view(request):
@@ -187,7 +187,11 @@ def create_user(request):
 # log out user
 def logout_view(request):
     logout(request)
-    return HttpResponse('user logged out')
+#    return HttpResponse('user logged out')
+    form = LoginForm(initial={'username':'', 'password':'', 'defaultdb':False})
+    c = {}
+    c.update(csrf(request))
+    return render_to_response('emailanalysis/home.html', {'form':form}, context_instance=RequestContext(request))
 
 # get json data
 @login_required(login_url='/emailanalysis/login/')
