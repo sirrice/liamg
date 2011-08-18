@@ -28,7 +28,8 @@
 
 var startdate, enddate, email;
 
-
+//filter by mail by setting the settings of each API call: startdate, enddate, email addy to filter.
+//call the API using .getJSON then let the js handle the chart creation
 function filterByEmail(){
 		var addresses = $("input[name=emailFilter]").val().replace(/[,\s]+$/g, '');
 		opts = {};
@@ -50,32 +51,40 @@ function filterByEmail(){
       
 }	
 	
+//used to refresh the screen
 function rerenderAll() {
+      //create the topsenders chart then the other charts which are filtered by email
 	getTopSendersList("foo", startdate, enddate);
 	filterByEmail();
 }
 
+
+//used when the daterangeslider is changed.
+//rerender all the information
 function updateDateRange(start, end) {
 	startdate = start;
 	enddate = end;
 	rerenderAll();		
 }
 
-
+//create the charts for the divs. set the min and max date for the daterange slider
 function init() {	
-    //$.getJSON("/emailanalysis/contacts/json/", function(data) {
-	//		make_autocomplete("contacts_list", data);
-	//	});
+
+      //object to hold all the charts that are on the page
       chartsData = {'hourChart' : setupChart('hourChart', "# Emails"),
 				'latencyChart' : setupChart('latencyChart', "Avg hours before reply"), 'rateChart': setupChart('rateChart', "Avg response rate")}
-	//filterByEmail();
+
+      //create the topsenders list chart
       getTopSendersList("foo");
+
+      //set the max and min dates
       var maxDate = new Date();
       var one_year_ago = new Date().setDate(maxDate.getDate() - 365);
       var minDate = new Date().setDate(maxDate.getDate() - 4 * 365) //get 4 years ago
+
+      //create the slider with the date ranges
       makeDateSlider("#dateslider", {bounds:{min:minDate, max:maxDate}, defaultValues:{min:one_year_ago, max:maxDate}}, updateDateRange);
 	
-//	$(window).resize($(".core_gallery_table"));
 }
 
 
