@@ -16,12 +16,13 @@ def get_top_sent(num, start, end, user, conn):
         
         #SQL command to group by email
         sqlCmd = "select email,count(*) as c from contacts inner join (select cid, date, subj from (select id, date, subj from msgs where fr = (select id from contacts where email = '%s') and %s) as 'msgids' inner join tos on tos.msg = msgids.id) as 'cids' on contacts.id = cids.cid group by email order by c desc limit %d;" % (user, dateStr, num)
-
+        
+        
         #execute the sql command 
         res = c.execute(sqlCmd)
         res = res.fetchall()
         
-
+        print res
         emails = []
         number = []
         #push the emails into an array and count the total
@@ -29,13 +30,11 @@ def get_top_sent(num, start, end, user, conn):
             emails.append(item[0])
             number.append(item[1])
         
-        save_index = ''
-        for index in range(len(emails)):
-            if emails[index] == user:
-                save_index = index
+        if user in emails:
+            index = emails.index(user)
+            emails.remove(user)
+            number.remove(number[index])
 
-        emails.pop(save_index)
-        number.pop(save_index)
 
         dictionary = dict()
         dictionary["labels"] = emails
