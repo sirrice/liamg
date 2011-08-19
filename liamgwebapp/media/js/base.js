@@ -39,8 +39,9 @@ function drawChart(data, chart) {
 
 
 
-function getTopSendersList(id, start, end){
-
+function getTopSendersList(id, start, end, jsonURL){
+    
+    var url = jsonURL;
     //get the most recent date
     var date = new Date();
     var dd = date.getDate(); var mm = date.getMonth() + 1; var yyyy = date.getFullYear();
@@ -49,7 +50,7 @@ function getTopSendersList(id, start, end){
 	if (start === undefined || start == null) start = "2010-1-1";
 	if (end === undefined || end == null) end = todayDateString;
 
- 	$.getJSON("/emailanalysis/topsenders/json/",{start:start, end:end},function(data){
+ 	$.getJSON(url,{start:start, end:end},function(data){
 		var email, count;
 		$("#" + id).empty();
 		var table = $("<table></table>");

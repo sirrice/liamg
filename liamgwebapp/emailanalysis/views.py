@@ -68,12 +68,21 @@ def index(request):
 
 @login_required(login_url='/emailanalysis/login/')
 def results(request):
-    dictionary = {"url_count":"/emailanalysis/byhour/json/", "url_time":"/emailanalysis/byhour/json/", "url_rate":"/emailanalysis/getrate/json/"}
+    dictionary = {"url_count":"/emailanalysis/byhour/json/", "url_time":"/emailanalysis/byhour/json/", "url_rate":"/emailanalysis/getrate/json/", "isRecMail":"true", "topListURL":"/emailanalysis/topsenders/json/"}
+    dictionary["top_email_title"] = "Top Email Responders"
+    dictionary["top_email_desc"] = "Contacts who most frequently email you."
+    dictionary["email_count"] = "Email Responses"
+    dictionary["email_count_desc"] = "Number of emails you received."
     return render_to_response('emailanalysis/results.html',dictionary ,context_instance=RequestContext(request))
 
-
-#def pie(request):
- #   return render_to_response('emailanalysis/pie.html',context_instance=RequestContext(request))
+@login_required(login_url='/emailanalysis/login/')
+def results_sent(request):
+    dictionary = {"isRecMail":"false", "topListURL":"/emailanalysis/topsent/json/"}
+    dictionary["top_email_title"] = "Top Email Contacts"
+    dictionary["top_email_desc"] = "Contacts who you most frequently email."
+    dictionary["email_count"] = "Sent Emails"
+    dictionary["email_count_desc"] = "Number of emails you sent."
+    return render_to_response('emailanalysis/results.html', dictionary, context_instance=RequestContext(request))
 
 # log in view
 def login_view(request):

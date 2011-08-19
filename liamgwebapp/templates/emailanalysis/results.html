@@ -20,11 +20,14 @@
 
 
 <script type="text/javascript">
-      google.load('visualization', '1', {packages: ['corechart']});
+  google.load('visualization', '1', {packages: ['corechart']});
+  
+  //keep track of what tab it is --> if we are in the Rec'd tab then we set to true. If we are in the Sent tab, then we set to false.
+var isReceivedMail = {{isRecMail}};
+var topListURL = "{{topListURL}}";
 
-
-    var chartsData = {};
-    google.setOnLoadCallback(init);
+var chartsData = {};
+google.setOnLoadCallback(init);
 
 var startdate, enddate, email;
 
@@ -37,11 +40,19 @@ function filterByEmail(){
       opts['end'] = enddate;
       opts['email'] = addresses;
       
-      //dynamically define the url string
-      var url_count_string = "{{url_count}}";
-      var url_time_string = "{{url_time}}";
-      var url_rate_string = "{{url_rate}}";
+      var url_count_string, url_time_string, url_rate_string;
 
+      if(isReceivedMail)
+      {
+         //dynamically define the url string
+         url_count_string = "{{url_count}}";
+         url_time_string = "{{url_time}}";
+         url_rate_string = "{{url_rate}}";
+      }
+      else 
+      {
+         //add the other urls here to get the sent message statistics
+      }
 
       $.getJSON(url_count_string, opts, function(data){
           drawChart(data, chartsData['hourChart']);
@@ -60,8 +71,8 @@ function filterByEmail(){
 //used to refresh the screen
 function rerenderAll() {
       //create the topsenders chart then the other charts which are filtered by email
-	getTopSendersList("foo", startdate, enddate);
-	filterByEmail();
+      getTopSendersList("foo",startdate, enddate, topListURL);
+      filterByEmail();
 }
 
 
@@ -81,7 +92,6 @@ function init() {
 				'latencyChart' : setupChart('latencyChart', "Avg hours before reply"), 'rateChart': setupChart('rateChart', "Avg response rate")}
 
       //create the topsenders list chart
-
       //set the max and min dates
       var maxDate = new Date();
       var one_year_ago = new Date().setDate(maxDate.getDate() - 365);
@@ -105,20 +115,20 @@ function init() {
 </div>
 
 <div id="dashboard">
-	<h1>Received E-Mail</h1>
+	<h1><a href="/emailanalysis/results">Received E-Mail</a></h1>
 	<ul>
-	  <li><a href="#Top">Top Email Responders<!--Ranked by # of emails in conversation over a specific time--></a></li>
-	  <li><a href="#Count">Contacts' Messages</a></li>
-	  <li><a href="#Time">Contacts' Response Time</a></li>
-	  <li><a href="#Rate">Contacts' Response Rate</a></li>
+	  <li><a href="/emailanalysis/results/#Top">Top Email Responders<!--Ranked by # of emails in conversation over a specific time--></a></li>
+	  <li><a href="/emailanalysis/results/#Count">Email Responses</a></li>
+	  <li><a href="/emailanalysis/results/#Time">Contacts' Response Time</a></li>
+	  <li><a href="/emailanalysis/results/#Rate">Contacts' Response Rate</a></li>
 	</ul>
 
-	<h1>Sent E-Mail</h1>
+	<h1><a href="/emailanalysis/results_sent">Sent E-Mail</a></h1>
 	<ul>
-	  <li>Top Email Contacts</li>
-	  <li>Your Sent Messages</li>
-	  <li>Your Response Time<!--People's average response time to you over a time range--></li>
-	  <li>Your Response Rate<!-- of time people will respond to you over a time range--></li>
+	  <li><a href="/emailanalysis/results_sent/#Top">Top Email Contacts</a></li>
+	  <li><a href="/emailanalysis/results_sent/#Count">Sent Emails</a></li>
+	  <li><a href="/emailanalysis/results_sent/#Time">Your Response Time<!--People's average response time to you over a time range--></a></li>
+	  <li><a href="/emailanalysis/results_sent/#Rate">Your Response Rate<!-- of time people will respond to you over a time range--></a></li>
 	</ul>
 	<h1><a href="/emailanalysis/logout/">Logout</h1>
 
@@ -126,15 +136,15 @@ function init() {
 </div>
 <div id="results">
 	 <a name="Top"></a>	
-	 <div class="category" id="topcontacts">Top Email Responders</div>
-		<div class="description">Shows you who you are most frequently in contact with.</div>
+	 <div class="category" id="topcontacts">{{top_email_title}}</div>
+		<div class="description">{{top_email_desc}}</div>
 		<div id="foo"></div>
 
 	<div style="height: 20pt;">	&nbsp;</div>
 
 	<a name="Count"></a>
-	<div class="category" id="general">Responses</div>
-		<div class="description">Number of emails you received. </div>
+	<div class="category" id="general">{{email_count}}</div>
+		<div class="description">{{email_count_desc}} </div>
 		<div class="chart_container" id="hourChart"></div>
 
 	<a name="Time"></a>
