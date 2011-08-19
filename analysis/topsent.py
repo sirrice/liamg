@@ -22,7 +22,6 @@ def get_top_sent(num, start, end, user, conn):
         res = c.execute(sqlCmd)
         res = res.fetchall()
         
-        print res
         emails = []
         number = []
         #push the emails into an array and count the total
@@ -46,10 +45,19 @@ def get_top_sent(num, start, end, user, conn):
         print e
         print "error in connection"
 
+def get_emails_topsent(start, end, user, conn):
+    c = conn.cursor()
+    dateStr = " date >= '" + start + "' and date < '"+  end + "'" 
+    sql = "select email,count(*) as c from contacts inner join (select cid, date, subj from (select id, date, subj from msgs where fr = (select id from contacts where email = '%s') and %s) as 'msgids' inner join tos on tos.msg = msgids.id) as 'cids' on contacts.id = cids.cid group by email order by c desc;" % (user, dateStr)
 
+    res = c.execute(sql)
+    res = res.fetchall()
 
+    emails = []
+    for item in res:
+        emails.append(item[0])
 
-
+    return emails
 
 
 if __name__ == "__main__":

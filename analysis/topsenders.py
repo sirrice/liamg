@@ -1,4 +1,4 @@
-
+import topsent
 from optparse import OptionParser
 import random, smtplib, sys, time, urllib
 import sqlite3, email, math, imaplib
@@ -17,11 +17,15 @@ def get_top_senders(num, startdate, enddate, user, conn):
         
         #might need a better way to do this -- if we have a business account there will be other email strings that we can't account for. However if we include
         #everything then we will not be able to filter out the spam that people send to the user
+        #email_list = ["'%yahoo%'", "'%gmail%'", "'%aol%'", "'%hotmail%'", "'%live.com%'"]
 
-        email_list = ["'%yahoo%'", "'%gmail%'", "'%aol%'", "'%hotmail%'", "'%live.com%'"]
+        email_list = topsent.get_emails_topsent(startdate, enddate, user, conn)        
+        email_list = ["'%{0}%'".format(email) for email in email_list]
+
         emailStr = "and (email like " + " or email like ".join(email_list) + ")"
         dateStr = "and date >= '" + startdate + "' and date < '" + enddate + "'"
         execCode = 'select email, count(*) as c from msgs, contacts where msgs.fr = contacts.id %s %s group by email order by c desc limit %d;' % (emailStr, dateStr, num)
+        
 
         res = c.execute(execCode)
         res = res.fetchall()
