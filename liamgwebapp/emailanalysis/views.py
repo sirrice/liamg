@@ -68,8 +68,8 @@ def index(request):
 
 @login_required(login_url='/emailanalysis/login/')
 def results(request):
-
-    return render_to_response('emailanalysis/results.html',context_instance=RequestContext(request))
+    dictionary = {"url_count":"/emailanalysis/byhour/json/", "url_time":"/emailanalysis/byhour/json/", "url_rate":"/emailanalysis/getrate/json/"}
+    return render_to_response('emailanalysis/results.html',dictionary ,context_instance=RequestContext(request))
 
 
 #def pie(request):

@@ -31,21 +31,27 @@ var startdate, enddate, email;
 //filter by mail by setting the settings of each API call: startdate, enddate, email addy to filter.
 //call the API using .getJSON then let the js handle the chart creation
 function filterByEmail(){
-		var addresses = $("input[name=emailFilter]").val().replace(/[,\s]+$/g, '');
-		opts = {};
-		opts['start'] = startdate;
-		opts['end'] = enddate;
-		opts['email'] = addresses;
-		
-   		$.getJSON("/emailanalysis/byhour/json/", opts, function(data){
-			drawChart(data, chartsData['hourChart']);
-   		});	  
-		opts['lat'] = 'True';
-   		$.getJSON("/emailanalysis/byhour/json/", opts, function(data){
-			drawChart(data, chartsData['latencyChart']);
-                }); 
+      var addresses = $("input[name=emailFilter]").val().replace(/[,\s]+$/g, '');
+      opts = {};
+      opts['start'] = startdate;
+      opts['end'] = enddate;
+      opts['email'] = addresses;
+      
+      //dynamically define the url string
+      var url_count_string = "{{url_count}}";
+      var url_time_string = "{{url_time}}";
+      var url_rate_string = "{{url_rate}}";
+
+
+      $.getJSON(url_count_string, opts, function(data){
+          drawChart(data, chartsData['hourChart']);
+      });	  
+      opts['lat'] = 'True';
+      $.getJSON(url_time_string, opts, function(data){
+          drawChart(data, chartsData['latencyChart']);
+      }); 
       opts['mode']= 'hour';
-      $.getJSON("/emailanalysis/getrate/json/", opts, function(data){
+      $.getJSON(url_rate_string, opts, function(data){
           drawChart(data, chartsData['rateChart']);
       });
       
@@ -97,19 +103,22 @@ function init() {
 <div id="logo">
 	<a href=""><img src="/media/images/logo-sm.png"/></a> <!--{{MEDIA_URL}}images/logo-sm.png-->
 </div>
+
 <div id="dashboard">
 	<h1>Received E-Mail</h1>
 	<ul>
-	  <li><a href="#Top">Top Email Contacts<!--Ranked by # of emails in conversation over a specific time--></a></li>
-	  <li><a href="#Count">Responses</a></li>
-	<li><a href="#Time">Response Time</a></li>
-	<li><a href="#Rate">Response Rate</a></li>
+	  <li><a href="#Top">Top Email Responders<!--Ranked by # of emails in conversation over a specific time--></a></li>
+	  <li><a href="#Count">Contacts' Messages</a></li>
+	  <li><a href="#Time">Contacts' Response Time</a></li>
+	  <li><a href="#Rate">Contacts' Response Rate</a></li>
 	</ul>
 
 	<h1>Sent E-Mail</h1>
 	<ul>
-	<li>Response Time<!--People's average response time to you over a time range--></li>
-	<li>Response Rate<!-- of time people will respond to you over a time range--></li>
+	  <li>Top Email Contacts</li>
+	  <li>Your Sent Messages</li>
+	  <li>Your Response Time<!--People's average response time to you over a time range--></li>
+	  <li>Your Response Rate<!-- of time people will respond to you over a time range--></li>
 	</ul>
 	<h1><a href="/emailanalysis/logout/">Logout</h1>
 
