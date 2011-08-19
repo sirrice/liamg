@@ -13,6 +13,7 @@ def get_top_senders(num, startdate, enddate, conn):
 
     c = conn.cursor()
     try:
+        num = num+1
         email_list = ["'%yahoo%'", "'%gmail%'", "'%aol%'", "'%hotmail%'", "'%live.com%'"]
         emailStr = "and (email like " + " or email like ".join(email_list) + ")"
         dateStr = "and date >= '" + startdate + "' and date < '" + enddate + "'"

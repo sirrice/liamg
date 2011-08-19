@@ -11,9 +11,9 @@ def get_top_sent(num, start, end, user, conn):
     c = conn.cursor()
     try:
         #identify the user that we want to get the emails for
+        num = num + 1
         dateStr = " date >= '" + start + "' and date < '"+  end + "'"
-        print num
-
+        
         #SQL command to group by email
         sqlCmd = "select email,count(*) as c from contacts inner join (select cid, date, subj from (select id, date, subj from msgs where fr = (select id from contacts where email = '%s') and %s) as 'msgids' inner join tos on tos.msg = msgids.id) as 'cids' on contacts.id = cids.cid group by email order by c desc limit %d;" % (user, dateStr, num)
 
@@ -21,15 +21,22 @@ def get_top_sent(num, start, end, user, conn):
         res = c.execute(sqlCmd)
         res = res.fetchall()
         
+
         emails = []
         number = []
         #push the emails into an array and count the total
         for item in res:
             emails.append(item[0])
             number.append(item[1])
-            
-        print emails
-        print number
+        
+        save_index = ''
+        for index in range(len(emails)):
+            if emails[index] == user:
+                save_index = index
+
+        emails.pop(save_index)
+        number.pop(save_index)
+
         dictionary = dict()
         dictionary["labels"] = emails
         dictionary["y"] = number
