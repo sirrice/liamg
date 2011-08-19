@@ -9,17 +9,22 @@ import json
 import re
 
 
-def get_top_senders(num, startdate, enddate, conn):
+def get_top_senders(num, startdate, enddate, user, conn):
 
     c = conn.cursor()
     try:
         num = num+1
+        
+        #might need a better way to do this -- if we have a business account there will be other email strings that we can't account for. However if we include
+        #everything then we will not be able to filter out the spam that people send to the user
+
         email_list = ["'%yahoo%'", "'%gmail%'", "'%aol%'", "'%hotmail%'", "'%live.com%'"]
         emailStr = "and (email like " + " or email like ".join(email_list) + ")"
         dateStr = "and date >= '" + startdate + "' and date < '" + enddate + "'"
         execCode = 'select email, count(*) as c from msgs, contacts where msgs.fr = contacts.id %s %s group by email order by c desc limit %d;' % (emailStr, dateStr, num)
+
+        print execCode
         res = c.execute(execCode)
-        res.fetchone()
         res = res.fetchall()
     except Exception, e:
         print >> sys.stderr, e
@@ -35,8 +40,14 @@ def get_top_senders(num, startdate, enddate, conn):
     for item in res:
         length = float(item[1]) / float(total) * 100
 
-        print "%35s %9s %s" % (item[0], item[1], "*"*int(length))
-   
+        #print "%35s %9s %s" % (item[0], item[1], "*"*int(length))
+
+    #get rid of the current user in the lists
+    if user in emails:
+        index = emails.index(user)
+        emails.remove(user)
+        numbers.remove(numbers[index])
+
     obj = dict()
     obj["labels"] = emails 
     obj["y"] = numbers

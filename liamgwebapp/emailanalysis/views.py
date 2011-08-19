@@ -233,7 +233,8 @@ def getjson(request, datatype):
         start = req.get('start', None)
         end = req.get ('end', None)
         top = 10       
-        data = topsenders.get_top_senders(top, start, end, conn)
+        email = curruser.username
+        data = topsenders.get_top_senders(top, start, end, email, conn)
     
     elif datatype == "topsent":
         req = request.REQUEST
