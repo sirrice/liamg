@@ -23,7 +23,6 @@ def get_top_senders(num, startdate, enddate, user, conn):
         dateStr = "and date >= '" + startdate + "' and date < '" + enddate + "'"
         execCode = 'select email, count(*) as c from msgs, contacts where msgs.fr = contacts.id %s %s group by email order by c desc limit %d;' % (emailStr, dateStr, num)
 
-        print execCode
         res = c.execute(execCode)
         res = res.fetchall()
     except Exception, e:
@@ -37,8 +36,8 @@ def get_top_senders(num, startdate, enddate, user, conn):
         total += int(item[1])
         emails.append(item[0])
         numbers.append(item[1])
-    for item in res:
-        length = float(item[1]) / float(total) * 100
+#    for item in res:
+ #       length = float(item[1]) / float(total) * 100
 
         #print "%35s %9s %s" % (item[0], item[1], "*"*int(length))
 
@@ -53,7 +52,6 @@ def get_top_senders(num, startdate, enddate, user, conn):
     obj["y"] = numbers
     
 
-    print obj
     return obj
 
 
