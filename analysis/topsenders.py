@@ -19,6 +19,7 @@ def get_top_senders(num, startdate, enddate, user, conn):
         #everything then we will not be able to filter out the spam that people send to the user
         #email_list = ["'%yahoo%'", "'%gmail%'", "'%aol%'", "'%hotmail%'", "'%live.com%'"]
         #for now going to use the senders list to predict who is important -> a person wouldn't send an email unless they were on the senders list
+
         email_list = topsent.get_emails_topsent(startdate, enddate, user, conn)        
         email_list = ["'%{0}%'".format(email) for email in email_list]
 
@@ -26,7 +27,7 @@ def get_top_senders(num, startdate, enddate, user, conn):
         dateStr = "and date >= '" + startdate + "' and date < '" + enddate + "'"
         execCode = 'select email, count(*) as c from msgs, contacts where msgs.fr = contacts.id %s %s group by email order by c desc limit %d;' % (emailStr, dateStr, num)
         
-
+        print execCode
         res = c.execute(execCode)
         res = res.fetchall()
     except Exception, e:
