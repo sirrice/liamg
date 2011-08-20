@@ -2,19 +2,21 @@ from xoauth import GenerateXOauthString, OAuthEntity
 import base64, hmac, imaplib
 from optparse import OptionParser
 import random, sha, smtplib, sys, time, urllib
-import sqlite3, email, math
+import psycopg2 as pg
+import email, math
 from dateutil.parser import parse
 from datetime import timedelta
 
 
 import re
-refs_pat = '<(?P<ref>[\w+-=%]+@([\w_]+.)*[\w_]+)>'
+#refs_pat = '<(?P<ref>[\w+-=%#\.]+@([\w_]+.)*[\w_]+)>'
+refs_pat = '<?(?P<ref>.+)>?'
 refs_prog = re.compile(refs_pat)
 contacts_pat = '(([\"\']?(?P<realname>\w[\w\ ]*)[\"\']?)?\s+)?<?(?P<email>[\w.]+@([\w_]+.)+[\w_]+)>?'
 contacts_prog = re.compile(contacts_pat)
 
 
-def download_headers(imap_hostname, user, passw, conn):
+def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None):
     """
     connect to gmail and download all headrs since jan-2011
     
@@ -32,64 +34,129 @@ def download_headers(imap_hostname, user, passw, conn):
     label_string = "[Gmail]/All Mail"
     search_string = "(SINCE 1-Jan-2009)"
 
+    user = account.user
+    host = account.host
     
-    imap_conn = imaplib.IMAP4_SSL(imap_hostname)
+    imap_conn = imaplib.IMAP4_SSL(account.host)
     imap_conn.debug = 0
     #imap_conn.authenticate('XOAUTH', lambda x: xoauth_string) not going to use oauthentication
 
-    imap_conn.login(user, passw)
+    imap_conn.login(user.username, passw)
     imap_conn.select(label_string)
     typ, dat = imap_conn.search(None, search_string)
     iternum = 0
-    chunk = 1000.0
 
-    mids = sorted(map(int, dat[0].split()), reverse=True)
-    print '%d total messages' % len(mids)
+    # profiling information
+    dlcost = 0.0
+    dbcost = 0.0
+    
+
+    mids = sorted(map(int, dat[0].split()))
+    if account.maxid != -1:
+        mids = filter(lambda mid: mid > account.maxid, mids)
+    d = None
+    print '%d total messages left' % len(mids)
     for idx in xrange(0, int(math.ceil(float(len(mids))/chunk))):
         curids = mids[int(idx*chunk):int((idx*chunk)+chunk)]
+
+        start = time.time()
         typ, dat = imap_conn.fetch(','.join(map(str,curids)), '(RFC822.HEADER)')
+        dlcost += time.time() - start
 
         print "processing messages %d - %d" % (idx*chunk, min((idx+1) * chunk,len(mids)))
+        start = time.time()
         for d in dat:
-            proc_msg(conn, d)
+            if d == ')': continue
+            mid = int(d[0][:d[0].find(' ')])
+
+
+            cur = conn.cursor()
+            try:            
+                if proc_msg(cur, account, d) is not None:
+                    account.maxid = mid
+                    iternum += 1
+                    conn.commit()
+            except Exception, err:
+                import traceback
+                print >> sys.stderr, "=== msg: %d ===" % mid
+                print >> sys.stderr, err
+                traceback.print_tb(sys.exc_info()[2])
+                print >> sys.stderr, ''
+                print >> sys.stderr, d
+                conn.rollback()
+            finally:
+                cur.close()
+
+            if maxmsgs and iternum >= maxmsgs: break
+        dbcost += time.time() - start
+        account.save()
+
+
+
+        if maxmsgs and iternum >= maxmsgs: break
+    print "download time: %f" % dlcost
+    print "database time: %f" % dbcost
+            
 
 
 # check if username/password combo is valid
 def authenticate_login(imap_hostname, user, passw):
-
     imap_conn = imaplib.IMAP4_SSL(imap_hostname)
     imap_conn.debug = 0
     imap_conn.login(user, passw)
 
 
-def proc_msg(conn, d):
+def proc_msg(cur, account, d):
     """
     clean and extract important header information, and store in database
     """
-    if len(d) == 0: return
+    if len(d) == 0: return None
     try:
         e = email.message_from_string(d[1])
     except Exception, e:
-        return False
+        return None
+
+    
+    multipart = e.is_multipart()
+    to = extract_names(e.get('To', '')) 
+    fr =  extract_names(e['From'])
+    cc = extract_names(e.get('CC', ''))
+    bcc = extract_names(e.get('BCC', ''))
+    subj = e.get('Subject', '')
+    date = clean_date(e['Date'])
+    mid = extract_refs(e.get('Message-ID', ''))[0]
+    replyto = extract_refs(e.get('In-Reply-To', ''))
+    replyto = replyto and replyto[0] or None
+    # References are all message IDs of parents in the reply tree
+    refs = extract_refs(e.get('References',''))
+        
     try:
-        multipart = e.is_multipart()
-        to = extract_names(e['To']) 
-        fr =  extract_names(e['From'])
-        cc = extract_names(e.get('CC', ''))
-        bcc = extract_names(e.get('BCC', ''))
-        subj = e.get('Subject', '')
-        date = clean_date(e['Date'])
-        mid = extract_refs(e.get('Message-ID', ''))[0]
-        replyto = extract_refs(e.get('In-Reply-To', ''))
-        replyto = replyto and replyto[0] or None
-        # References are all message IDs of parents in the reply tree
-        refs = extract_refs(e.get('References',''))
-        add_msg(conn, fr[0], subj, date, mid, replyto, multipart, to, cc, bcc, refs)
+        if not len(get_tuples(cur, "emails", "mid", mid)):
+            add_msg(cur, account, fr[0], subj, date, mid, replyto, multipart, to, cc, bcc, refs)
         return True
     except Exception, err:
+        import traceback
         print >> sys.stderr, err
-        print >> sys.stderr, e
-        return False
+        traceback.print_tb(sys.exc_info()[2])
+        print
+
+        print "===header info==="
+        print "From:"
+        print "\t", fr[0]
+        print subj
+        print date
+        print replyto
+        print "Tos: "
+        for x in to: print "\t", x
+        print "CCs: "
+        for x in cc: print "\t", x
+        print "BCCs: "
+        for x in bcc: print "\t", x
+        print "Refs: "
+        for x in refs: print "\t", x
+
+        raise RuntimeError
+        
 
 
 def clean_date(txt):
@@ -112,6 +179,7 @@ def extract_refs(txt):
 def extract_names(txt):
     txt = clean(txt)
 
+    emails = set()
     contacts = []
     for block in txt.strip(' ,').split(','):
         res = contacts_prog.search(block)
@@ -119,106 +187,98 @@ def extract_names(txt):
             name = res.group('realname')
             email = res.group('email')
             if email: email = email.lower()
+            if email in emails: continue
+            emails.add(email)
             contacts.append((name, email))
+        
     return contacts
 
 
 
-def get_tuple(conn, table, id):
-    c = conn.cursor()
+def get_tuple(c, table, id):
     try:
-        res = c.execute('select * from %s where id = ?' % table, (id,))
-        res = res.fetchone()
+        c.execute('select * from %s where id = %%s' % table, (id,))
+        res = c.fetchone()
     except Exception, e:
-        print >> sys.stderr, e
+        print >> sys.stderr, "%s\tid=%s" % (table, id)
         res = None
-    c.close()
     return res
 
-def get_tuples(conn, table, attr, id):
-    c = conn.cursor()
+def get_tuples(c, table, attr, id):
     ret = []
     try:
-        res = c.execute('select * from %s where %s = ?' % (table, attr), (id,))
-        ret.extend(res)
+        c.execute('select * from %s where %s = %%s' % (table, attr), (id,))
+        ret.extend(c.fetchall())
     except Exception, e:
-        print >> sys.stderr, e
+        print >> sys.stderr, "%s\t%s=%s" % (table, attr, id)
         ret = []
-    c.close()
     return ret
     
 
-def get_email(conn, id):
-    return get_tuple(conn, "contacts", id)
+def get_email(c, id):
+    return get_tuple(c, "contacts", id)
 
-def get_msg(conn, id):
-    return get_tuple(conn, "msgs", id)
+def get_msg(c, id):
+    return get_tuple(c, "emails", id)
 
 
 
-def add_msg(conn, fr, subj, date, mid, reply, multipart, to, cc, bcc, refs):
-    c = conn.cursor()
+def add_msg(c, account, fr, subj, date, mid, reply, multipart, to, cc, bcc, refs):
+    frid = add_email(c, account, fr[0], fr[1])
 
-    frid = add_email(conn, fr[0], fr[1])
-    c.execute('insert into msgs values (NULL, ?,?,?,?,?,?)', (frid, subj, str(date), mid, reply, multipart))
-    msgid = c.lastrowid
+    c.execute('insert into emails values (DEFAULT, %s, %s,%s,%s,%s,%s,%s) returning id', (account.pk, frid, subj, str(date), mid, reply, multipart))
+    msgid = c.fetchone()[0]
     for name, email in to:
-        c.execute('insert into tos values (NULL, ?, ?)', (msgid, add_email(conn, name, email)))
+        c.execute('insert into tos values (DEFAULT, %s, %s)', (msgid, add_email(c, account, name, email)))
     for name, email in cc:
-        c.execute('insert into ccs values (NULL, ?, ?)', (msgid, add_email(conn, name, email)))
+        c.execute('insert into ccs values (DEFAULT, %s, %s)', (msgid, add_email(c, account, name, email)))
     for name, email in bcc:
-        c.execute('insert into bccs values (NULL, ?, ?)', (msgid, add_email(conn, name, email)))
+        c.execute('insert into bccs values (DEFAULT, %s, %s)', (msgid, add_email(c, account, name, email)))
     for ref in refs:
-        c.execute('insert into refs values (NULL, ?, ?)', (msgid, ref))
+        c.execute('insert into refs values (DEFAULT, %s, %s)', (msgid, ref))
 
-    conn.commit()
-    c.close()
+    return msgid
 
-def add_email(conn, name, email):
+
+def add_email(c, account, name, email):
     if not email: return
-    c = conn.cursor()
-    try:
-        # first check if the email exists.  contact.email column should be unique
-        res = c.execute('select id, name from contacts where email = ?', (email,))
-        row = res.fetchone()
-        if row:
-            # if it exists but the name was null, update with actual name value
-            rowid = row[0]
-            if not row[1] and name:
-                c.execute("update contacts set name = ? where id = ?", (name, rowid))
-        else:
-            # otherwise insert a new contact info
-            c.execute("insert into contacts values (NULL,?, ?)", (name, email))
-            rowid = c.lastrowid
-        conn.commit()
-    except Exception, e:
-        print >> sys.stderr, e
-        conn.rollback()
-        
-    c.close()
+    uid = account.user.pk
+    # first check if the email exists.  contact.email column should be unique
+    c.execute('select id, name from contacts where owner_id = %s and email = %s', (uid, email,))
+    row = c.fetchone()
+    if row:
+        # if it exists but the name was null, update with actual name value
+        rowid = row[0]
+        if not row[1] and name:
+            c.execute("update contacts set name = %s where owner_id = %s and id = %s", (name, uid, rowid))
+    else:
+        # otherwise insert a new contact info
+        c.execute("insert into contacts values (DEFAULT,%s,%s,%s) returning id", (uid, name, email))
+        rowid = c.fetchone()[0]
     return rowid
 
-def setup_db(conn):
-    c = conn.cursor()
-    try:
-        c.execute('''create table contacts (id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name text, email text not null)''')
-        c.execute('''create table msgs (id integer primary key autoincrement,
-        fr int references contacts(id), subj text, date datetime, mid text unique,
-        reply text references msgs(mid), multipart bool)''')
-        c.execute('''create table refs (id integer primary key autoincrement,
-        msg int references msgs(id), refed text references msgs(mid) )''')
-        c.execute('''create table tos (id integer primary key autoincrement,
-        msg int references msgs(id), cid int references contacts(id) )''')
-        c.execute('''create table ccs (id integer primary key autoincrement,
-        msg int references msgs(id), cid int references contacts(id) )''')
-        c.execute('''create table bccs (id integer primary key autoincrement,
-        msg int references msgs(id), cid int references contacts(id) )''')
-        conn.commit()
-    except Exception, e:
-        conn.rollback()
-        print >> sys.stderr, e
-    c.close()
+
+# def setup_db(conn):
+#     c = conn.cursor()
+#     try:
+#         c.execute('''create table contacts (id INTEGER PRIMARY KEY AUTOINCREMENT,
+#         name text, email text not null)''')
+#         c.execute('''create table msgs (id integer primary key autoincrement,
+#         fr int references contacts(id), subj text, date datetime, mid text unique,
+#         reply text references msgs(mid), multipart bool)''')
+#         c.execute('''create table refs (id integer primary key autoincrement,
+#         msg int references msgs(id), refed text references msgs(mid) )''')
+#         c.execute('''create table tos (id integer primary key autoincrement,
+#         msg int references msgs(id), cid int references contacts(id) )''')
+#         c.execute('''create table ccs (id integer primary key autoincrement,
+#         msg int references msgs(id), cid int references contacts(id) )''')
+#         c.execute('''create table bccs (id integer primary key autoincrement,
+#         msg int references msgs(id), cid int references contacts(id) )''')
+#         conn.commit()
+#     except Exception, e:
+#         conn.rollback()
+#         print >> sys.stderr, e
+#     c.close()
 
 
 
@@ -234,17 +294,36 @@ def setup_db(conn):
 if __name__ == '__main__':
     from settings import *
     import getpass
-    conn = sqlite3.connect('./mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
-    setup_db(conn)
+    import sys, os
+    ROOT = os.path.abspath('%s/liamgwebapp/' % os.path.abspath(os.path.dirname(__file__)))
+    sys.path.append(ROOT)
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'liamgwebapp.settings'
+    from django.contrib.auth.models import User
+    from django.contrib.auth import authenticate
+    from emailanalysis.models import *
     
-    consumer = OAuthEntity('anonymous', 'anonymous')
-    access_token = OAuthEntity(token, secret)
-    xoauth_string = GenerateXOauthString(consumer, access_token, gmailaddr, 'imap',
-                                         None, None, None)
-
-    user = getpass.getpass("Username: ")
-    print user
+    conn = pg.connect(database='liamg', user='liamg', password='liamg')
+    #conn = sqlite3.connect('./mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
+    #setup_db(conn)
+    
+    
+    # consumer = OAuthEntity('anonymous', 'anonymous')
+    # access_token = OAuthEntity(token, secret)
+    # xoauth_string = GenerateXOauthString(consumer, access_token, gmailaddr, 'imap',
+    #                                      None, None, None)
+    print "enter your gmail email and password!"
+    sys.stdout.write("Username: ")
+    sys.stdout.flush()
+    username = sys.stdin.readline().strip()
     passw = getpass.getpass("Password: ")
-#    download_headers('imap.googlemail.com', gmailaddr, xoauth_string, conn)
-    download_headers('imap.googlemail.com',user, passw, conn)
+
+    user = authenticate(username=username, password=passw)
+    if not user:
+        user = User.objects.create_user(username, username, passw)
+        account = Account(user=user, host="imap.googlemail.com", username="username")
+        account.save()
+    else:
+        account = Account.objects.get(user=user)
+
+    download_headers(account, passw, conn, chunk=100, maxmsgs=5000)
     conn.close()
