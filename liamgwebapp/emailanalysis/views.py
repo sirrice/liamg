@@ -145,9 +145,10 @@ def login_view(request):
                     dbname = 'user{0}.db'.format(userdb.id)
                     userdb.dbname = dbname
                     userdb.save()
-                    print dbname
+
                     conn = sqlite3.connect(dbname, detect_types=sqlite3.PARSE_DECLTYPES)
-                    print conn
+
+                    #need to find a way to make one database
                     getdata.setup_db(conn)
                     getdata.download_headers('imap.googlemail.com',username,password,conn)
                     os.system('./analyzedb.sh {0}'.format(dbname))
