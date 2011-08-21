@@ -1,5 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db import connection, transaction
+from django.conf import settings
+import psycopg2 as pg
+import sys
+sys.path.append("../")
+from getdata import AsyncDownload
 
 
 # class Userdbs(models.Model):
@@ -14,7 +20,31 @@ class Account(models.Model):
     user = models.ForeignKey(User)
     host = models.TextField()
     username = models.CharField(max_length=128)
-    maxid = models.IntegerField(default=-1)
+    max_dl_mid = models.IntegerField(default=-1)
+    maxlatid = models.IntegerField(default=0)
+    max_mid = models.IntegerField(default=0)
+    last_refresh = models.DateTimeField(auto_now_add=True)
+    refreshing = models.BooleanField(default=False)
+    
+    @transaction.commit_manually
+    def check_for_new(self, password):
+    
+        # wrap in xact
+        if self.refreshing:
+            return False
+
+        conn = pg.connect(database=settings.DATABASES['default']['NAME'],
+                          user=settings.DATABASES['default']['USER'],
+                          password=settings.DATABASES['default']['PASSWORD'])
+        ad = AsyncDownload(self, password, conn, 100)
+        ad.start()
+        return True
+
+    def __unicode__(self):
+        return "%s@%s" % (self.user.username, self.host)
+
+        
+        
 
 class Contact(models.Model):
     class Meta:
@@ -33,6 +63,7 @@ class Email(models.Model):
     fr = models.ForeignKey(Contact, related_name="as_sender", db_column='fr')
     subj = models.TextField()
     date = models.DateTimeField()
+    imapid = models.IntegerField()
     mid = models.TextField(unique=True)
     reply = models.TextField(null=True)  # references Email.mid
     multipart = models.BooleanField()
@@ -47,4 +78,18 @@ class Ref(models.Model):
 
     child = models.ForeignKey(Email, db_column="from", related_name="as_child")
     parent = models.TextField()
+    
+
+class Latency(models.Model):
+    class Meta:
+        db_table = "latencies"
+        unique_together = (('owner', 'replyemail', 'origemail'),)
+
+    owner = models.ForeignKey(Account, db_column="account")
+    replier = models.ForeignKey(Contact, related_name="reply",  db_column="replier")
+    sender = models.ForeignKey(Contact, related_name="sender", db_column="sender")
+    replyemail = models.ForeignKey(Email, related_name="lat_reply", db_column="replyemail")
+    origemail = models.ForeignKey(Email, related_name="lat_orig", db_column="origemail")
+    replydate = models.DateTimeField( db_column="replydate")
+    origdate = models.DateTimeField( db_column="origdate")    
     

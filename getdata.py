@@ -3,9 +3,10 @@ import base64, hmac, imaplib
 from optparse import OptionParser
 import random, sha, smtplib, sys, time, urllib
 import psycopg2 as pg
-import email, math
+import email, math, threading
 from dateutil.parser import parse
-from datetime import timedelta
+from datetime import datetime, timedelta
+
 
 
 import re
@@ -52,48 +53,64 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None):
     
 
     mids = sorted(map(int, dat[0].split()))
-    if account.maxid != -1:
-        mids = filter(lambda mid: mid > account.maxid, mids)
+    if account.max_dl_mid != -1:
+        mids = filter(lambda mid: mid > account.max_dl_mid, mids)
+    account.max_mid = max(mids)
+    if account.refreshing: return
+    account.refreshing = True
+    account.save()
+
     d = None
     print '%d total messages left' % len(mids)
-    for idx in xrange(0, int(math.ceil(float(len(mids))/chunk))):
-        curids = mids[int(idx*chunk):int((idx*chunk)+chunk)]
 
-        start = time.time()
-        typ, dat = imap_conn.fetch(','.join(map(str,curids)), '(RFC822.HEADER)')
-        dlcost += time.time() - start
+    try:
+        for idx in xrange(0, int(math.ceil(float(len(mids))/chunk))):
+            curids = mids[int(idx*chunk):int((idx*chunk)+chunk)]
 
-        print "processing messages %d - %d" % (idx*chunk, min((idx+1) * chunk,len(mids)))
-        start = time.time()
-        for d in dat:
-            if d == ')': continue
-            mid = int(d[0][:d[0].find(' ')])
+            start = time.time()
+            typ, dat = imap_conn.fetch(','.join(map(str,curids)), '(RFC822.HEADER)')
+            dlcost += time.time() - start
+
+            print "processing messages %d - %d" % (idx*chunk, min((idx+1) * chunk,len(mids)))
+            start = time.time()
+            for d in dat:
+                if d == ')': continue
+                mid = int(d[0][:d[0].find(' ')])
 
 
-            cur = conn.cursor()
-            try:            
-                if proc_msg(cur, account, d) is not None:
-                    account.maxid = mid
-                    iternum += 1
-                    conn.commit()
-            except Exception, err:
-                import traceback
-                print >> sys.stderr, "=== msg: %d ===" % mid
-                print >> sys.stderr, err
-                traceback.print_tb(sys.exc_info()[2])
-                print >> sys.stderr, ''
-                print >> sys.stderr, d
-                conn.rollback()
-            finally:
-                cur.close()
+                cur = conn.cursor()
+                try:            
+                    if proc_msg(cur, account, mid, d) is not None:
+                        account.max_dl_mid = mid
+                        account.save()
+                        iternum += 1
+                        conn.commit()
+                except Exception, err:
+                    import traceback
+                    print >> sys.stderr, "=== msg: %d ===" % mid
+                    print >> sys.stderr, err
+                    traceback.print_tb(sys.exc_info()[2])
+                    print >> sys.stderr, ''
+                    print >> sys.stderr, d
+                    print >> sys.stderr, ''
+                    conn.rollback()
+                finally:
+                    cur.close()
 
+                if maxmsgs and iternum >= maxmsgs: break
+
+            dbcost += time.time() - start
             if maxmsgs and iternum >= maxmsgs: break
-        dbcost += time.time() - start
-        account.save()
 
+    except Exception, err:
+        import traceback
+        print >> sys.stderr, err
+        traceback.print_tb(sys.exc_info()[2])
+        print >> sys.stderr, ''
 
-
-        if maxmsgs and iternum >= maxmsgs: break
+    account.refreshing = False
+    account.last_refresh = datetime.now()
+    account.save()
     print "download time: %f" % dlcost
     print "database time: %f" % dbcost
             
@@ -106,7 +123,7 @@ def authenticate_login(imap_hostname, user, passw):
     imap_conn.login(user, passw)
 
 
-def proc_msg(cur, account, d):
+def proc_msg(cur, account, imapid, d):
     """
     clean and extract important header information, and store in database
     """
@@ -132,7 +149,8 @@ def proc_msg(cur, account, d):
         
     try:
         if not len(get_tuples(cur, "emails", "mid", mid)):
-            add_msg(cur, account, fr[0], subj, date, mid, replyto, multipart, to, cc, bcc, refs)
+            add_msg(cur, account, fr[0], subj, date, imapid, mid,
+                    replyto, multipart, to, cc, bcc, refs)
         return True
     except Exception, err:
         import traceback
@@ -223,10 +241,10 @@ def get_msg(c, id):
 
 
 
-def add_msg(c, account, fr, subj, date, mid, reply, multipart, to, cc, bcc, refs):
+def add_msg(c, account, fr, subj, date, imapid, mid, reply, multipart, to, cc, bcc, refs):
     frid = add_email(c, account, fr[0], fr[1])
 
-    c.execute('insert into emails values (DEFAULT, %s, %s,%s,%s,%s,%s,%s) returning id', (account.pk, frid, subj, str(date), mid, reply, multipart))
+    c.execute('insert into emails values (DEFAULT, %s,%s,%s,%s,%s,%s,%s,%s) returning id', (account.pk, frid, subj, str(date), imapid, mid, reply, multipart))
     msgid = c.fetchone()[0]
     for name, email in to:
         c.execute('insert into tos values (DEFAULT, %s, %s)', (msgid, add_email(c, account, name, email)))
@@ -283,8 +301,26 @@ def add_email(c, account, name, email):
 
 
 
-
-
+class AsyncDownload(threading.Thread):
+    
+    def __init__(self, account, passw, conn, chunk=1000.0, maxmsgs=None):
+        super(AsyncDownload, self).__init__()
+        self.password = passw
+        self.conn = conn
+        self.chunk=chunk
+        self.maxmsgs = maxmsgs
+        self.account = account
+        
+    def run(self):
+        try:
+            print "running asyncdownload"
+            download_headers(self.account, self.password, self.conn, self.chunk, self.maxmsgs)
+            self.account.refreshing = False
+            self.account.save()
+        except:
+            pass
+        finally:
+            self.conn.close()
 
     
 
@@ -325,5 +361,5 @@ if __name__ == '__main__':
     else:
         account = Account.objects.get(user=user)
 
-    download_headers(account, passw, conn, chunk=100, maxmsgs=5000)
+    download_headers(account, passw, conn, chunk=100, maxmsgs=None)
     conn.close()

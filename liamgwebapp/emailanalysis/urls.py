@@ -23,6 +23,9 @@ urlpatterns = patterns('emailanalysis.views',
 #   (r'^createuser/submit/$', 'create_user'),
     (r'^results/$', 'results'),
     (r'^results_sent/$','results_sent'),
+                       (r'^refresh/status/(\d+)/$', 'refresh_check'),
+                       (r'^refresh/$', 'refresh_account'),
+                       (r'^refresh/wait/(\d+)/$', 'refresh_wait'),
 #    (r'^pie/$', 'pie'),                                              
 
     # Examples:

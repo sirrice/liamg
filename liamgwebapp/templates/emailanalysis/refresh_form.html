@@ -1,0 +1,17 @@
+<html>
+<head>
+	<script src="/media/js/jquery.js"></script>
+	<script>
+	function refresh_account() {
+		return true;
+	}
+	</script>
+</head>
+<body>
+	<form action="/emailanalysis/refresh/" method="POST" onsubmit="return refresh_account()">{% csrf_token %}
+		{{user}}
+		{{form.accounts}}<br/>
+		{{form.password}}
+	</form>
+</body>
+</html>

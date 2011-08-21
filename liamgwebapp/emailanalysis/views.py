@@ -15,9 +15,10 @@ from django.core.context_processors import csrf
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django import forms
+from emailanalysis.models import *
 
 # models
-from emailanalysis.models import Userdbs
+#from emailanalysis.models import Userdbs
 
 # import modules for processing data
 from dateutil.parser import parse
@@ -39,6 +40,15 @@ import getdata
 
 
 #getdata.setup_db(conn)
+
+class RefreshForm(forms.Form):
+
+    def __init__(self, user, *args, **kwargs):
+        super(RefreshForm, self).__init__(*args, **kwargs)
+        self.fields['accounts'].queryset = user.account_set.all()
+    
+    accounts = forms.ModelChoiceField(queryset=[])
+    password = forms.CharField(widget=forms.PasswordInput)
 
 
 class ContactForm(forms.Form):
@@ -90,7 +100,6 @@ def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
 
-
         if form.is_valid():
             defaultdb = form.cleaned_data['defaultdb']
             if defaultdb:
@@ -121,12 +130,11 @@ def login_view(request):
                 try:
                     getdata.authenticate_login('imap.googlemail.com',username,password)
                 except:
-                    
                     # not valid --> need to find a better template to navigate to
                     return HttpResponse('user/password combo invalid')
 
                 # check if user in db
-                user = authenticate(username=username,password='')
+                user = authenticate(username=username,password=password)
                 if user is not None:
                     if user.is_active:
                         login(request,user)
@@ -137,23 +145,27 @@ def login_view(request):
                 # user doesn't exist: create user
                 # download data, return results page
                 else:
-                    user = User.objects.create_user(username,'','')
-                    user = authenticate(username=username,password='')
+                    user = User.objects.create_user(username,username,password)
+                    user = authenticate(username=username,password=password)
                     login(request,user)
-                    # create database name for user
-                    userdb = Userdbs(username=username)
-                    userdb.save() # creates userdb.id
-                    dbname = 'user{0}.db'.format(userdb.id)
-                    userdb.dbname = dbname
-                    userdb.save()
+                    # create account for user
+                    account = Account(user=user, host="imap.googlemail.com", username="username")
+                    account.save()
 
-                    conn = sqlite3.connect(dbname, detect_types=sqlite3.PARSE_DECLTYPES)
+                    # # create database name for user
+                    # userdb = Userdbs(username=username)
+                    # userdb.save() # creates userdb.id
+                    # dbname = 'user{0}.db'.format(userdb.id)
+                    # userdb.dbname = dbname
+                    # userdb.save()
 
-                    #need to find a way to make one database
-                    getdata.setup_db(conn)
-                    getdata.download_headers('imap.googlemail.com',username,password,conn)
-                    os.system('./analyzedb.sh {0}'.format(dbname))
-                    conn.close()
+                    # conn = sqlite3.connect(dbname, detect_types=sqlite3.PARSE_DECLTYPES)
+
+                    # #need to find a way to make one database
+                    # getdata.setup_db(conn)
+                    # getdata.download_headers('imap.googlemail.com',username,password,conn)
+                    # os.system('./analyzedb.sh {0}'.format(dbname))
+                    # conn.close()
 
                     # redirect to results page?
                     return HttpResponseRedirect("/emailanalysis/results")
@@ -328,3 +340,48 @@ def sendmail(request):
         return render_to_response('emailanalysis/sendmail.html', {
             'form': form,
             },context_instance=RequestContext(request))
+
+
+@login_required
+def refresh_account(request):
+    user = request.user
+    if request.method == 'GET':
+        form = RefreshForm(user)
+        return render_to_response('emailanalysis/refresh_form.html',
+                                  {'form' : form},
+                                  context_instance = RequestContext(request))
+    else:
+        form = RefreshForm(user, request.POST)
+        if form.is_valid():
+            password = form.cleaned_data['password']
+            account = form.cleaned_data['accounts']
+            running = account.check_for_new(password)
+            return HttpResponseRedirect('/emailanalysis/refresh/wait/%d/' % account.pk)
+    return render_to_response('emailanalysis/refresh_form.html',
+                              {'form' : form},
+                              context_instance = RequestContext(request))
+
+@login_required
+def refresh_wait(request, aid):
+    account = Account.objects.get(pk=aid)
+    return render_to_response('emailanalysis/refresh_wait.html',
+                              {'account' : account},
+                              context_instance = RequestContext(request))
+
+
+
+@login_required
+def refresh_check(request, aid):
+    account = Account.objects.get(pk=aid)
+    if not account or account.user != request.user:
+        data = {'error' : True}
+    else:
+        data = {'error' : False,
+                'done' : not account.refreshing,
+                'max_dl_mid' : account.max_dl_mid,
+                'max_mid' : account.max_mid,
+                'last_refresh' : str(account.last_refresh)}
+    return HttpResponse(json.dumps(data), mimetype="application/json")    
+        
+        
+    

@@ -1,0 +1,28 @@
+<html>
+<head>
+	<script src="/media/js/jquery.js"></script>
+	<script>
+	
+	function check_refresh() {
+		$.getJSON('/emailanalysis/refresh/status/{{account.pk}}/', function(data) {
+			if (!data.error) {
+				if (!data.done) {
+					$("#status").text(data.max_dl_mid + " out of " + data.max_mid + " messages");
+					setTimeout(check_refresh, 1000);
+				} else {
+					$("#status").text(data.max_dl_mid + " out of " + data.max_mid + " messages since " + data.last_refresh);					
+					alert("Done!");
+				}
+			}
+		})
+	}
+	
+	$(function() {
+		check_refresh()
+	});
+	</script>
+</head>
+<body>
+	<div id="status"></div>
+</body>
+</html>
