@@ -37,7 +37,7 @@ from statsbyhour import *
 from timeline import *
 from contacts import Contacts
 import getdata
-
+import psycopg2
 
 #getdata.setup_db(conn)
 
@@ -168,6 +168,10 @@ def login_view(request):
                     # conn.close()
 
                     # redirect to results page?
+                    conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
+                    conn = psycopg2.connect(conn_string)
+                    getdata.download_headers(account, password, conn)
+                    
                     return HttpResponseRedirect("/emailanalysis/results")
 #                    return HttpResponse('data downloaded')
         else:
@@ -234,12 +238,13 @@ def getjson(request, datatype):
     if end: end = parse(end)
     if daysofweek: daysofweek = daysofweek.split(",")
     if reply is not None: reply = bool(reply)
+    
 
-    curruser = Userdbs.objects.get(username=request.user)
-    print request.user
-    print curruser.dbname
-
-    conn = sqlite3.connect(curruser.dbname, detect_types=sqlite3.PARSE_DECLTYPES)
+    curruser = User.objects.get(username=request.user)
+#    curruser = Userdbs.objects.get(username=request.user)
+    conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
+    conn = psycopg2.connect(conn_string)
+#    conn = sqlite3.connect(curruser.dbname, detect_types=sqlite3.PARSE_DECLTYPES)
     
     # db call to get data
     if datatype == 'topsenders':
@@ -258,7 +263,6 @@ def getjson(request, datatype):
         top = 10 
         email = curruser.username
         data = topsent.get_top_sent(top, start, end, email, conn)
-        print email
 
     elif datatype == "getrate":
         req = request.REQUEST
