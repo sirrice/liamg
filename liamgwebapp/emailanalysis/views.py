@@ -292,6 +292,7 @@ def getjson(request, datatype):
         queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
                                         granularity=granularity, email=email)))
         ld = BDLineData()
+
         data = ld.get_data(queries, conn, 0, granularity=granularity, start=start, end=end)
 
     elif datatype == "getcount":
@@ -299,6 +300,7 @@ def getjson(request, datatype):
         queries = []
         queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
                                         granularity=granularity, email=email)))
+
         ld = BDLineData()
         data = ld.get_data(queries, conn, 1, granularity=granularity, start=start, end=end)
 
