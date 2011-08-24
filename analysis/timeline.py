@@ -61,28 +61,33 @@ class BDLineData(object):
 class ByDayNorm(object):
     def get_sql(self, lat=True, reply=None, start=None, end = None,
                 granularity=None, email=None):
-        
-        WHERE = []
-        if start:
-            WHERE.append("datetime(date) > datetime('%s')" % start.strftime('%Y-%m-%d'))
-        if end:
-            WHERE.append("datetime(date) < datetime('%s')" % end.strftime('%Y-%m-%d'))
+        try:
 
-        WHERE.append("(me.id = m.fr)")
+            WHERE = []
+            if start:
+                WHERE.append("datetime(date) > datetime('%s')" % start.strftime('%Y-%m-%d'))
+            if end:
+                WHERE.append("datetime(date) < datetime('%s')" % end.strftime('%Y-%m-%d'))
 
-        if email:
-            WHERE.append("me.email like '%%%s%%'" % email)
+            WHERE.append("(me.id = m.fr)")
 
-        if granularity == 'week':
-            SELECT = "count(*), count(*), date(date, '-'||strftime('%w',date)||' days') as date"
-        else:
-            SELECT = "count(*), count(*), date(date) as date"
+            if email:
+                WHERE.append("me.email like '%%%s%%'" % email)
 
-        WHERE = ' and '.join(WHERE)
+            if granularity == 'week':
+                SELECT = "count(*), count(*), date(date, '-'||strftime('%w',date)||' days') as date"
+            else:
+                SELECT = "count(*), count(*), date(date) as date"
 
-        sql = "SELECT %s FROM msgs m, contacts me WHERE %s GROUP BY date ORDER BY date asc;" % (SELECT, WHERE)
-        return sql
+            WHERE = ' and '.join(WHERE)
 
+            sql = "SELECT %s FROM emails m, contacts me WHERE %s GROUP BY date ORDER BY date asc;" % (SELECT, WHERE)
+            print sql
+            return sql
+
+        except Exception, e:
+            print e
+            print 'except in get_sql'
 
 
 
