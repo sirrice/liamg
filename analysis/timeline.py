@@ -39,13 +39,15 @@ class BDLineData(object):
         if start == None:
             return {'labels' : [], 'y' : []}
 
+
+        #create a list with the day of every 7 days starting from the start date
         if granularity == "week":
             start = start - timedelta(days = ((start.weekday()+1)%7))
             end = end - timedelta(days = ((end.weekday()+1)%7))
             td = timedelta(days=7)
         else:
             td = timedelta(days=1)
-
+        
         xs = []
         while start <= end:
             xs.append(start.strftime('%Y-%m-%d'))
@@ -54,6 +56,7 @@ class BDLineData(object):
         data = {}
         print xs
         
+
         for title, d in tmpdata.items():
             print 'title and value', title, d
             data[title] = [x in d and d[x][statid] or 0 for x in xs]
