@@ -120,7 +120,7 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
                 execCode_Denominator += " and %s.cid = %d" % (tbl, replid)
             print(execCode_Denominator)
             res = c.execute(execCode_Denominator).fetchall()
-            print res
+
             for item in res:
                 if SINGLE_REPLIER and int(item[1]) in msgIds:
                     continue
