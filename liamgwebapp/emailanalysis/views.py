@@ -241,14 +241,18 @@ def getjson(request, datatype):
     
 
     curruser = User.objects.get(username=request.user)
-#    curruser = Userdbs.objects.get(username=request.user)
+
+    #ATTENTION: going to need to change the host once we deploy live
     conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
+
+    #connect to db to get the data
     conn = psycopg2.connect(conn_string)
-#    conn = sqlite3.connect(curruser.dbname, detect_types=sqlite3.PARSE_DECLTYPES)
+
+    #DEPRECATED: for the sqlite prototype database
+    #conn = sqlite3.connect(curruser.dbname, detect_types=sqlite3.PARSE_DECLTYPES)
     
-    # db call to get data
+    #get the top people who respond to the user
     if datatype == 'topsenders':
-        
         req = request.REQUEST
         start = req.get('start', None)
         end = req.get ('end', None)
@@ -256,6 +260,7 @@ def getjson(request, datatype):
         email = curruser.username
         data = topsenders.get_top_senders(top, start, end, email, conn)
     
+    #get the sent top ten people who the user contacts
     elif datatype == "topsent":
         req = request.REQUEST
         start = req.get('start', None)
@@ -264,6 +269,7 @@ def getjson(request, datatype):
         email = curruser.username
         data = topsent.get_top_sent(top, start, end, email, conn)
 
+    #get the rate for a specifc user (filtered) and for the general population
     elif datatype == "getrate":
         req = request.REQUEST
         start = req.get('start', None)
@@ -273,6 +279,7 @@ def getjson(request, datatype):
         mode = req.get('mode', None)
         data = responseRateByTime.get_response_rate(mode, start, end, emailAddy, replyAddy, conn)
 
+    #use this to get the count
     elif datatype == "byhour":
         ebh = RepliesByHour()
         queries = []

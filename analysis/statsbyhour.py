@@ -85,12 +85,13 @@ class LineData(object):
                 break
 
 
-
+#DEPRECATED: used for the sqlite prototype
 #select distinct m.id from msgs m, contacts c, tos t where t.msg = m.id and (c.id = m.fr or  (t.msg = m.id and c.id = t.cid)) and c.email like '%zhenya%';
 
 
 class RepliesByHour(object):
-    def get_sql(self, lat=True, reply=True, start=None, end = None, daysofweek = None, email="sirrice"):
+    #set default options so that email = "" --> might need to change this
+    def get_sql(self, lat=True, reply=True, start=None, end = None, daysofweek = None, email=""):
         WHERE = []
         WHERE.append("l.lat < 1")
         if start:
@@ -109,13 +110,16 @@ class RepliesByHour(object):
             WHERE.append("me.email like '%%%s%%'" % email)
 
         if lat:
-            SELECT = "avg(lat) * 60 as avglat, strftime('%H', sentdate) as hour" # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
+            SELECT = "avg(lat) * 60 as avglat, strftime('%H', sentdate) as hour" 
+            # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
         else:
-            SELECT = "count(*), strftime('%H', sentdate) as hour"#, CAST(strftime('%M', sentdate)/60 as integer) as minute"
+            SELECT = "count(*), strftime('%H', sentdate) as hour"
+            #, CAST(strftime('%M', sentdate)/60 as integer) as minute"
 
         WHERE = ' and '.join(WHERE)
-
+        
         sql = "SELECT %s FROM latency l, contacts me WHERE %s GROUP BY hour ORDER BY hour asc;" % (SELECT, WHERE)
+        print sql
         return sql
 
 
