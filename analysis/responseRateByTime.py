@@ -117,23 +117,29 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
         #this is the new postgres query
         c.execute("select id from contacts where email = '%s';" % emailAddy)
         myid = int(c.fetchone()[0])
-        
+
         if SINGLE_REPLIER:
             #DEPRECATED: this is the sqlite query that is no longer used
             #replid = int(c.execute("select id from contacts where email = '%s';" % replyAddy).fetchone()[0])
 
             #this is the new postgres query
-            c.execute("select id from contacts where email = '%s';" % replyAddy)
+            #it allows for users to filter by person for that specific user's contact list. it accounts for overlaps of contacts between users (i.e. it is possible for two users to have a similar contact)
+            c.execute("select id from contacts where email = '%s' and owner_id = (select id from auth_user where username = '%s');" % (replyAddy, emailAddy)) 
+
             replid = int(c.fetchone()[0])
 
         for tbl,trgt in typeMap.items():
             msgIds = []
 #            execCode_Denominator = "select emails.date,emails.id,emails.subj from emails inner join %s on emails.id = %s.email_id and emails.fr = %d and emails.date >= '%s' and emails.date <= '%s' " % (tbl, tbl, myid, start, end)
-            execCode_Denominator = "select emails.date, emails.id, emails.subj from emails inner join %s on emails.id = %s.email_id and emails.account = (select id from auth_user where username = '%s') and emails.date >= '%s' and emails.date <= '%s' " % (tbl, tbl, emailAddy, start, end)
-            print 'denom:' +  execCode_Denominator
-            if SINGLE_REPLIER:
-                execCode_Denominator += " and %s.contact_id = %d" % (tbl, replid)
 
+            #needs to accept email accounts to distinguish between users
+            execCode_Denominator = "select emails.date, emails.id, emails.subj from emails inner join %s on emails.id = %s.email_id and emails.account = (select id from auth_user where username = '%s') and emails.date >= '%s' and emails.date <= '%s' " % (tbl, tbl, emailAddy, start, end)
+
+            if SINGLE_REPLIER:
+            #    execCode_Denominator += " and %s.contact_id = %d" % (tbl, replid)
+                execCode_Denominator += " and %s.contact_id = %d " % (tbl, replid)
+
+            print 'denom:' +  execCode_Denominator
             #DEPRECATED: this is the sqlite query that is no longer used
             #res = c.execute(execCode_Denominator).fetchall()
             
@@ -152,10 +158,11 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
 #            execCode_Numerator = "select thedate,intid,e.id from ((select emails.id as intid, emails.date as thedate,emails.mid as msgid from %s inner join emails on %s.email_id = emails.id and emails.fr = %d%s and emails.date >= '%s' and emails.date <= '%s') as m left outer join emails as e on msgid = e.reply) where e.reply is not NULL " % (tbl, tbl,myid, addlString, start, end)
  
             execCode_Numerator = "select thedate, intid, e.id from ((select emails.id as intid, emails.date as thedate, emails.mid as msgid from %s inner join emails on %s.email_id = emails.id and emails.account = (select id from auth_user where username = '%s') and emails.date >= '%s' and emails.date <= '%s') as m left outer join emails as e on msgid = e.reply) where e.reply is not NULL " % (tbl, tbl,emailAddy, start, end)
-            print 'num:'+ execCode_Numerator
-            if SINGLE_REPLIER:
-                execCode_Numerator += " and e.fr = %d" % replid
 
+            if SINGLE_REPLIER:
+  #              execCode_Numerator += " and e.fr = %d" % replid
+                execCode_Numerator += " and e.fr = %d " % replid
+            print 'num:'+ execCode_Numerator
             #DEPRECATED
             #res = c.execute(execCode_Numerator).fetchall()
 
