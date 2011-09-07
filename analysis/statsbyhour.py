@@ -11,7 +11,9 @@ class LineData(object):
         return map(tuple, map(lambda row: map(float, row), res))
 
     def get_data(self, queries, conn):
-#        conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
+
+        #DEPRECATED: getting rid of the sqlite database queries
+        #        conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
 
         cur = conn.cursor()
 

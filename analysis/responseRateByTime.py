@@ -110,7 +110,6 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
    # conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
     c = conn.cursor()
 
-    print emailAddy
     try:
         #DEPRECATED: this is the sqlite query that is no longer used
         #myid = int(c.execute("select id from contacts where email = '%s';" % emailAddy).fetchone()[0])
@@ -118,7 +117,7 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
         #this is the new postgres query
         c.execute("select id from contacts where email = '%s';" % emailAddy)
         myid = int(c.fetchone()[0])
-
+        
         if SINGLE_REPLIER:
             #DEPRECATED: this is the sqlite query that is no longer used
             #replid = int(c.execute("select id from contacts where email = '%s';" % replyAddy).fetchone()[0])
@@ -129,8 +128,9 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
 
         for tbl,trgt in typeMap.items():
             msgIds = []
-            execCode_Denominator = "select emails.date,emails.id,emails.subj from emails inner join %s on emails.id = %s.email_id and emails.fr = %d and emails.account = (select id from auth_user where username = '%s') and emails.date >= '%s' and emails.date <= '%s'" % (tbl, tbl, myid, emailAddy, start, end)
-
+#            execCode_Denominator = "select emails.date,emails.id,emails.subj from emails inner join %s on emails.id = %s.email_id and emails.fr = %d and emails.date >= '%s' and emails.date <= '%s' " % (tbl, tbl, myid, start, end)
+            execCode_Denominator = "select emails.date, emails.id, emails.subj from emails inner join %s on emails.id = %s.email_id and emails.account = (select id from auth_user where username = '%s') and emails.date >= '%s' and emails.date <= '%s' " % (tbl, tbl, emailAddy, start, end)
+            print 'denom:' +  execCode_Denominator
             if SINGLE_REPLIER:
                 execCode_Denominator += " and %s.contact_id = %d" % (tbl, replid)
 
@@ -149,7 +149,10 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
             addlString = ""
             if SINGLE_REPLIER:
                 addlString = " and %s.contact_id = %d" % (tbl, replid)
-            execCode_Numerator = "select thedate,intid,e.id from ((select emails.id as intid, emails.date as thedate,emails.mid as msgid from %s inner join emails on %s.email_id = emails.id and emails.fr = %d%s and emails.account = (select id from auth_user where username = '%s') and emails.date >= '%s' and emails.date <= '%s') as m left outer join emails as e on msgid = e.reply) where e.reply is not NULL " % (tbl, tbl,myid, addlString, emailAddy, start, end)
+#            execCode_Numerator = "select thedate,intid,e.id from ((select emails.id as intid, emails.date as thedate,emails.mid as msgid from %s inner join emails on %s.email_id = emails.id and emails.fr = %d%s and emails.date >= '%s' and emails.date <= '%s') as m left outer join emails as e on msgid = e.reply) where e.reply is not NULL " % (tbl, tbl,myid, addlString, start, end)
+ 
+            execCode_Numerator = "select thedate, intid, e.id from ((select emails.id as intid, emails.date as thedate, emails.mid as msgid from %s inner join emails on %s.email_id = emails.id and emails.account = (select id from auth_user where username = '%s') and emails.date >= '%s' and emails.date <= '%s') as m left outer join emails as e on msgid = e.reply) where e.reply is not NULL " % (tbl, tbl,emailAddy, start, end)
+            print 'num:'+ execCode_Numerator
             if SINGLE_REPLIER:
                 execCode_Numerator += " and e.fr = %d" % replid
 

@@ -29,7 +29,7 @@ def get_top_senders(num, startdate, enddate, user, conn):
         userStr = "and account = (select id from auth_user where username ='" + user + "')"
 
         execCode = 'select email, count(*) as c from emails, contacts where emails.fr = contacts.id %s %s %s group by email order by c desc limit %d;' % (userStr, emailStr, dateStr, num)
-        print execCode
+
         
         c.execute(execCode)
         res = c.fetchall()
