@@ -47,8 +47,8 @@ def get_emails_topsent(start, end, user, conn):
     c = conn.cursor()
     try:
         dateStr = " date >= '" + start + "' and date < '"+  end + "'" 
-        sql = "select email, count(*) as c from contacts inner join (select contact_id, date, subj from (select id, date, subj from emails where fr = (select id from contacts where email = '%s') and %s) as msgids inner join tos on tos.email_id = msgids.id) as cids on contacts.id = cids.contact_id group by email order by c desc;" % (user, dateStr)
-
+        sql = "select email, count(*) as c from contacts inner join (select contact_id, date, subj from (select id, date, subj from emails where fr = (select id from contacts where email = '%s' and owner_id = (select id from auth_user where email = '%s'))and %s) as msgids inner join tos on tos.email_id = msgids.id) as cids on contacts.id = cids.contact_id group by email order by c desc;" % (user, user, dateStr)
+        print sql
         c.execute(sql)
         res = c.fetchall()
 

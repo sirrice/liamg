@@ -136,6 +136,8 @@ def proc_msg(cur, account, imapid, d):
     
     multipart = e.is_multipart()
     to = extract_names(e.get('To', '')) 
+    
+    #break apart the headers of each email
     fr =  extract_names(e['From'])
     cc = extract_names(e.get('CC', ''))
     bcc = extract_names(e.get('BCC', ''))
@@ -194,9 +196,10 @@ def extract_refs(txt):
             refs.append(res.group('ref'))
     return refs
     
+
+#extract names from the headers of each email- assume separated by comma
 def extract_names(txt):
     txt = clean(txt)
-
     emails = set()
     contacts = []
     for block in txt.strip(' ,').split(','):
