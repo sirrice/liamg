@@ -95,7 +95,7 @@ class ModeDatum:
         for key,vals in self.masterMap.items():
             ret["labels"].append(make_human_readable(self.thismode, key))
             ret["y"].append(vals.getResponseRate())
-        print ret
+
         return ret
 
 def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
@@ -130,7 +130,6 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
             execCode_Denominator = "select emails.date,emails.id,emails.subj from emails inner join %s on emails.id = %s.email_id and emails.fr = %d and emails.date >= '%s' and emails.date <= '%s'" % (tbl, tbl, myid, start, end)
             if SINGLE_REPLIER:
                 execCode_Denominator += " and %s.contact_id = %d" % (tbl, replid)
-            print(execCode_Denominator)
 
             #DEPRECATED: this is the sqlite query that is no longer used
             #res = c.execute(execCode_Denominator).fetchall()
@@ -151,7 +150,6 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
             if SINGLE_REPLIER:
                 execCode_Numerator += " and e.fr = %d" % replid
 
-            print execCode_Numerator
             #DEPRECATED
             #res = c.execute(execCode_Numerator).fetchall()
 
