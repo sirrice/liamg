@@ -15,7 +15,7 @@ def get_top_sent(num, start, end, user, conn):
         dateStr = " date >= '" + start + "' and date < '"+  end + "'"
         
         #SQL command to group by email
-        sqlCmd = "select email, count(*) as c from contacts inner join (select contact_id, date, subj from (select id, date, subj from emails where fr = (select id from contacts where email = '%s') and %s) as msgids inner join tos on tos.email_id = msgids.id) as cids on contacts.id = cids.contact_id group by email order by c desc limit %d;" % (user, dateStr, num)
+        sqlCmd = "select email, count(*) as c from contacts inner join (select contact_id, date, subj from (select id, date, subj from emails where fr = (select id from contacts where email = '%s' and owner_id = (select id from auth_user where email = '%s')) and %s) as msgids inner join tos on tos.email_id = msgids.id) as cids on contacts.id = cids.contact_id group by email order by c desc limit %d;" % (user, user, dateStr, num)
         #execute the sql command 
         c.execute(sqlCmd)
         res = c.fetchall()
