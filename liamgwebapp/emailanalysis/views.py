@@ -303,8 +303,15 @@ def getjson(request, datatype):
         ebh = RepliesByHour()
         queries = []
         print "EMAIL", email
+        #get the curruser id
+        curridsql = "select id from accounts where user_id = (select id from auth_user where username = '%s')" % curruser
+        c = conn.cursor()
+        c.execute(curridsql)
+        currid = c.fetchone()[0]
+
+
         queries.append(('y', ebh.get_sql(lat=lat, reply=reply, start=start, end=end,
-                                         daysofweek=daysofweek, email=email)))
+                                         daysofweek=daysofweek, email=email, currid = currid)))
         ld = LineData()
         data = ld.get_data(queries, conn)
 
