@@ -269,7 +269,16 @@ def getjson(request, datatype):
 
     #DEPRECATED: for the sqlite prototype database
     #conn = sqlite3.connect(curruser.dbname, detect_types=sqlite3.PARSE_DECLTYPES)
-    
+
+
+    #get the curruser id so that you can pass it to the functions below
+    curridsql = "select id from accounts where user_id = (select id from auth_user where username = '%s')" % curruser
+    c = conn.cursor()
+    c.execute(curridsql)
+    currid = c.fetchone()[0]
+
+
+
     #get the top people who respond to the user
     if datatype == 'topsenders':
         req = request.REQUEST
@@ -298,17 +307,11 @@ def getjson(request, datatype):
         mode = req.get('mode', None)
         data = responseRateByTime.get_response_rate(mode, start, end, emailAddy, replyAddy, conn)
 
-    #use this to get the count
+    #use this to get the count in the first graph
     elif datatype == "byhour":
         ebh = RepliesByHour()
         queries = []
         print "EMAIL", email
-        #get the curruser id
-        curridsql = "select id from accounts where user_id = (select id from auth_user where username = '%s')" % curruser
-        c = conn.cursor()
-        c.execute(curridsql)
-        currid = c.fetchone()[0]
-
 
         queries.append(('y', ebh.get_sql(lat=lat, reply=reply, start=start, end=end,
                                          daysofweek=daysofweek, email=email, currid = currid)))
@@ -328,11 +331,14 @@ def getjson(request, datatype):
 
         data = ld.get_data(queries, conn, 0, granularity=granularity, start=start, end=end)
 
+
+    #use this to get the small graph next to the top ten
     elif datatype == "getcount":
         bd = ByDayNorm()
         queries = []
-        queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
-                                        granularity=granularity, email=email)))
+
+        #get the queries for the line charts in the top ten
+        queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end, granularity=granularity, email=email, currid=currid)))
         ld = BDLineData()
 
         data = ld.get_data(queries, conn, 1, granularity=granularity, start=start, end=end)

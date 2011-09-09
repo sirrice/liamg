@@ -73,11 +73,13 @@ class BDLineData(object):
 
 class ByDayNorm(object):
     def get_sql(self, lat=True, reply=None, start=None, end = None,
-                granularity=None, email=None):
+                granularity=None, email=None,currid=None):
         try:
 
             WHERE = []
-            
+            #URGENT: Need to account for multiple users on the same database
+            WHERE.append("m.account = %d" % currid)
+
             if start:
                 WHERE.append("date > '%s'" % start.strftime('%Y-%m-%d'))
             if end:
@@ -95,6 +97,7 @@ class ByDayNorm(object):
 
             sql = "SELECT %s WHERE %s GROUP BY d ORDER BY d asc;" % (SELECT, WHERE)
  #           sql = "select count(*), (m.date::date - extract(dow from m.date)::int) as dat from emails as m join contacts as me on m.fr = me.id where m.date > '2010-08-25' and m.date < '2011-08-25' and me.email like '%gmail.com%' group by dat order by dat;"
+            print sql
 
             return sql
 
