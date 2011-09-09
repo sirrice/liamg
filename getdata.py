@@ -42,8 +42,11 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None):
     imap_conn.debug = 0
     #imap_conn.authenticate('XOAUTH', lambda x: xoauth_string) not going to use oauthentication
 
+    #connect to the imap
     imap_conn.login(user.username, passw)
     imap_conn.select(label_string)
+
+    #get the data from the imap search using the search string
     typ, dat = imap_conn.search(None, search_string)
     iternum = 0
 
