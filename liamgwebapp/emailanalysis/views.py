@@ -167,13 +167,28 @@ def login_view(request):
                     # os.system('./analyzedb.sh {0}'.format(dbname))
                     # conn.close()
 
-                    # redirect to results page?
+
                     conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
                     conn = psycopg2.connect(conn_string)
                     getdata.download_headers(account, password, conn)
                     
+                    #make a connection and run the latencies script
+                    c = conn.cursor()
+                    
+                    #get the account id for the specific user
+                    actidSQL = "select id from accounts where user_id = (select id from auth_user where username = '%s');" % user
+                    c.execute(actidSQL)
+                    actid = c.fetchone()[0]
+                    print actid
+                    
+                    #fill the latencies table - currently not firing, not sure why?
+                    latencies_sql = "insert into latencies(account, replier, sender, replyemail, origemail, replydate, origdate) select m1.account, c1.id as replier, c2.id as sender, m1.id as replyemail, m2.id as origemail, m1.date as replydate, m2.date as origdate from contacts c1, contacts c2, emails m1, emails m2 where m1.id > m2.id and m1.reply = m2.mid and m1.reply is not null and c1.id = m1.fr and c2.id = m2.fr and m1.account = %s and m1.account = m2.account;" % (actid)
+                    print latencies_sql
+                    c.execute(latencies_sql)
+                    print 'finished sql'
+                    #redirect to results page
                     return HttpResponseRedirect("/emailanalysis/results")
-#                    return HttpResponse('data downloaded')
+
         else:
             return HttpResponse('form invalid')
     else:

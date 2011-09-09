@@ -139,7 +139,6 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
             #    execCode_Denominator += " and %s.contact_id = %d" % (tbl, replid)
                 execCode_Denominator += " and %s.contact_id = %d " % (tbl, replid)
 
-            print 'denom:' +  execCode_Denominator
             #DEPRECATED: this is the sqlite query that is no longer used
             #res = c.execute(execCode_Denominator).fetchall()
             
@@ -162,7 +161,7 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
             if SINGLE_REPLIER:
   #              execCode_Numerator += " and e.fr = %d" % replid
                 execCode_Numerator += " and e.fr = %d " % replid
-            print 'num:'+ execCode_Numerator
+
             #DEPRECATED
             #res = c.execute(execCode_Numerator).fetchall()
 

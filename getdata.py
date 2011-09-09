@@ -85,6 +85,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None):
                         account.save()
                         iternum += 1
                         conn.commit()
+
                 except Exception, err:
                     import traceback
                     print >> sys.stderr, "=== msg: %d ===" % mid
@@ -101,6 +102,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None):
 
             dbcost += time.time() - start
             if maxmsgs and iternum >= maxmsgs: break
+            
 
     except Exception, err:
         import traceback
@@ -132,7 +134,7 @@ def proc_msg(cur, account, imapid, d):
         e = email.message_from_string(d[1])
     except Exception, e:
         return None
-
+    
     
     multipart = e.is_multipart()
     to = extract_names(e.get('To', '')) 
@@ -153,6 +155,11 @@ def proc_msg(cur, account, imapid, d):
         if not len(get_tuples(cur, "emails", "mid", mid)):
             add_msg(cur, account, fr[0], subj, date, imapid, mid,
                     replyto, multipart, to, cc, bcc, refs)
+        
+        
+        print account.username
+        print account
+        print type(account)
         return True
     except Exception, err:
         import traceback
