@@ -157,9 +157,6 @@ def proc_msg(cur, account, imapid, d):
                     replyto, multipart, to, cc, bcc, refs)
         
         
-        print account.username
-        print account
-        print type(account)
         return True
     except Exception, err:
         import traceback
