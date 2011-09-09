@@ -189,7 +189,7 @@ def login_view(request):
                     c.execute(latencies_sql)
                     conn.commit()
 
-                    print 'finished sql'
+
                     #redirect to results page
                     return HttpResponseRedirect("/emailanalysis/results")
 
