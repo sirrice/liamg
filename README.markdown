@@ -61,4 +61,32 @@ D3 declarative visualizations
 
     http://mbostock.github.com/d3/
 
+
+TODOs
+--------------
+
+Eugene
+
+ * Create message download pipeline
+ * Separate header download and message contents download
+ * Update latencies table SQL
+ * Modularize latencies calculation
+ * Integrate latencies calculation into message download pipeline
+
+Lydia 
+
+ * Deploy onto AWS
+
+Chris
+
+ * Get queries running
+
+Melinda / Allin
+
+ * Frontend?
+
+Ravi
+
+ * Scripts/Backend
+
 author: sirrice
