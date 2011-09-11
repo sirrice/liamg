@@ -11,6 +11,7 @@ import re
 
 def get_top_senders(num, startdate, enddate, user, conn):
     c = conn.cursor()
+    execCode = ""
     try:
         num = num+1
         
@@ -19,10 +20,11 @@ def get_top_senders(num, startdate, enddate, user, conn):
         #email_list = ["'%yahoo%'", "'%gmail%'", "'%aol%'", "'%hotmail%'", "'%live.com%'"]
         #for now going to use the senders list to predict who is important -> a person wouldn't send an email unless they were on the senders list
         
-        email_list = topsent.get_emails_topsent(startdate, enddate, user, conn)      
+        email_list = topsent.get_emails_topsent(startdate, enddate, user, conn) 
         email_list = ["'%{0}%'".format(email) for email in email_list]
 
         emailStr = "and (email like " + " or email like ".join(email_list) + ")"
+        emailStr = ""
         dateStr = "and date >= '" + startdate + "' and date < '" + enddate + "'"
 
         #IMPORTANT: create a user string so that you can distinguish between users - now will support multiple users on the same database
@@ -35,8 +37,11 @@ def get_top_senders(num, startdate, enddate, user, conn):
         res = c.fetchall()
     except Exception, e:
         print 'theres an error. we are in the catch block.'
+        print email_list
+        print execCode        
         print >> sys.stderr, e
         print e
+
         res = None
     total = 0
     emails = []

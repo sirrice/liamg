@@ -408,20 +408,17 @@ class AsyncDownload(threading.Thread):
     
 
 if __name__ == '__main__':
-    from settings import *
     import getpass
     import sys, os
     ROOT = os.path.abspath('%s/liamgwebapp/' % os.path.abspath(os.path.dirname(__file__)))
     sys.path.append(ROOT)
     os.environ['DJANGO_SETTINGS_MODULE'] = 'liamgwebapp.settings'
+    from settings import *    
     from django.contrib.auth.models import User
     from django.contrib.auth import authenticate
     from emailanalysis.models import *
     
     conn = pg.connect(database='liamg', user='liamg', password='liamg')
-    #conn = sqlite3.connect('./mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
-    #setup_db(conn)
-    
     
     # consumer = OAuthEntity('anonymous', 'anonymous')
     # access_token = OAuthEntity(token, secret)
