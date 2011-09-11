@@ -1,23 +1,13 @@
 Tool to download your gmail headers, store them in a sqlite database.  Includes
 a tool that plots a histogram of the number of emails exchanged with friends.
 
-Requires
+Python Modules
 --------
  
 This requires the following modules:
 
- - matplotlib
  - dateutil
- - numpy
-
-You can install numpy and matplotlib on ubuntu using 
-
-    sudo apt-get install python-numpy
-    sudo apt-get install python-matplotlib
-
-Otherwise, you can download and install numpy from 
-
-    http://new.scipy.org/download.html
+ - psycopg2 (http://initd.org/psycopg/download/)
 
 For the other packages, they are included in `modules/`.  
 For example, you can install dateutil using the following
@@ -33,34 +23,35 @@ To check that it works do
     python
     >>> import dateutil    
 
+Databases
+-------
+
+Inboxdr uses PostgreSQL
+
 
 Getting started
 ------------
 
-Run the following script, follow the instructions and copy down the token
-and secret.
+Create the database and user
 
-	sh gen_tokens.sh <username@gmail.com>
+    createdb liamg
+    createuser liamg
 
-Add tokens into settings.py
+Create your private settings file
 
-    token = '<your token>' 
-    secret = '<your secret>'
-    gmailaddr = '<yourname@gmail.com>'
+    cd liamgweb
+    cp private_settings.py.tmpl private_settings.py
 
-Download your entire inbox's message headers
+Edit your private settings to use the correct database backend.  Do not add or commit
+`private_settings.py`!  This is customized for your own deployment.
+
+Download your entire inbox's message headers and enter your username and password.
 
     python getdata.py 2> err
 
-If you only want a subset, open `getdata.py` and edit `label_string` and `search_string` in `download_headers`
+If you only want a subset, open `getdata.py` and edit `label_string` 
+and `search_string` in `download_headers`
 
-Once your headers are downloaded, you can visualize your correspondence
-
-    python histogram.py
-    
-    enter part of a friend's name and I'll plot a histogram of your email to him/her
-    enter a blank line to exit
-    name: <type in a part of your friend's name.  case insensitive>
 
 
 Things to checkout

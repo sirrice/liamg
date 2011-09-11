@@ -1,6 +1,7 @@
 # Django settings for liamgwebapp project.
 import os
 ROOT_PATH = os.path.dirname(__file__)
+from private_settings import *
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -11,16 +12,6 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'liamg',                      # Or path to database file if using sqlite3.
-        'USER': 'liamg',                      # Not used with sqlite3.
-        'PASSWORD': 'liamg',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-    }
-}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
