@@ -63,4 +63,11 @@ Once your headers are downloaded, you can visualize your correspondence
     name: <type in a part of your friend's name.  case insensitive>
 
 
+Things to checkout
+-----------------
+
+D3 declarative visualizations
+
+    http://mbostock.github.com/d3/
+
 author: sirrice

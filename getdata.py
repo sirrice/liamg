@@ -1,3 +1,4 @@
+
 from xoauth import GenerateXOauthString, OAuthEntity
 import base64, hmac, imaplib
 from optparse import OptionParser
@@ -6,6 +7,9 @@ import psycopg2 as pg
 import email, math, threading
 from dateutil.parser import parse
 from datetime import datetime, timedelta
+import pyparsing
+from pyparsing import (nestedExpr, Literal, Word, alphanums, 
+                       quotedString, replaceWith, nums, removeQuotes)
 
 
 
@@ -15,9 +19,45 @@ refs_pat = '<?(?P<ref>.+)>?'
 refs_prog = re.compile(refs_pat)
 contacts_pat = '(([\"\']?(?P<realname>\w[\w\ ]*)[\"\']?)?\s+)?<?(?P<email>[\w.]+@([\w_]+.)+[\w_]+)>?'
 contacts_prog = re.compile(contacts_pat)
+# body structure parser
+NIL = Literal("NIL").setParseAction(replaceWith(None))
+integer = Word(nums).setParseAction(lambda t:int(t[0]))
+quotedString.setParseAction(removeQuotes)
+content = (NIL | integer | Word(alphanums))
+ne = nestedExpr(content=content, ignoreExpr=quotedString)
+bs_parser = ne
 
 
-def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None):
+def parse_bs(bs):
+    try:
+        # remove body header content, and close tag
+        bs = bs[:bs.rfind('BODY[HEADER]')] + ')'
+        # remove outer layer
+        bs = bs[ bs.find("(BODYSTRUCTURE") + len("(BODYSTRUCTURE"):bs.rfind(')')].strip()
+        ps = bs_parser.parseString(bs)
+        struct = ps[0]
+        return struct
+    except:
+        pass
+
+
+def find_text(bs, prefix=''):
+    if isinstance(bs, pyparsing.ParseResults):
+        if bs[0] == 'TEXT' and bs[1] == 'PLAIN':
+            if prefix == '':
+                section = 'TEXT'
+            else:
+                section = prefix[1:]
+            return section
+        else:
+            i = 1
+            for x in bs:
+                ret = find_text(x, '%s.%d' % (prefix, i))
+                if ret is not None: return ret
+                i += 1
+
+
+def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=True):
     """
     connect to gmail and download all headrs since jan-2011
     
@@ -41,9 +81,17 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None):
     imap_conn = imaplib.IMAP4_SSL(account.host)
     imap_conn.debug = 0
     #imap_conn.authenticate('XOAUTH', lambda x: xoauth_string) not going to use oauthentication
+    try:
+        imap_conn.login(user.username, passw)
+        imap_conn.select(label_string)
+    except Exception, err:
+        import traceback
+        print >> sys.stderr, err
+        traceback.print_tb(sys.exc_info()[2])
+        print >> sys.stderr, ''
+        return False
 
-    imap_conn.login(user.username, passw)
-    imap_conn.select(label_string)
+
     typ, dat = imap_conn.search(None, search_string)
     iternum = 0
 
@@ -55,9 +103,10 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None):
     mids = sorted(map(int, dat[0].split()))
     if account.max_dl_mid != -1:
         mids = filter(lambda mid: mid > account.max_dl_mid, mids)
+    if len(mids) == 0:
+        print "no messages left"
+        return
     account.max_mid = max(mids)
-    if account.refreshing: return
-    account.refreshing = True
     account.save()
 
     d = None
@@ -68,7 +117,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None):
             curids = mids[int(idx*chunk):int((idx*chunk)+chunk)]
 
             start = time.time()
-            typ, dat = imap_conn.fetch(','.join(map(str,curids)), '(RFC822.HEADER)')
+            typ, dat = imap_conn.fetch(','.join(map(str,curids)), '(BODY.PEEK[HEADER] BODYSTRUCTURE)')
             dlcost += time.time() - start
 
             print "processing messages %d - %d" % (idx*chunk, min((idx+1) * chunk,len(mids)))
@@ -81,6 +130,9 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None):
                 cur = conn.cursor()
                 try:            
                     if proc_msg(cur, account, mid, d) is not None:
+                        if gettext:
+                            add_email_text(cur, imap_conn, mid, d[0])
+                        
                         account.max_dl_mid = mid
                         account.save()
                         iternum += 1
@@ -113,7 +165,24 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None):
     account.save()
     print "download time: %f" % dlcost
     print "database time: %f" % dbcost
-            
+
+
+
+def add_email_text(cur, imap_conn, mid, bs_str):
+    bs = parse_bs(bs_str)
+    if not bs: return False
+    section = find_text(bs)
+    if section:
+        t,d = imap_conn.fetch(str(mid), '(body.peek[%s])' % section)
+        e = email.message_from_string( d[0][1])
+        text = e.get_payload()
+        
+        text = text.replace('\n\r', '\n').replace("\r", '')
+        cur.execute("insert into contents (emailid, text) values (%s,%s)", (mid, text))
+
+        return True
+    return False
+                            
 
 
 # check if username/password combo is valid
@@ -314,6 +383,9 @@ class AsyncDownload(threading.Thread):
     def run(self):
         try:
             print "running asyncdownload"
+            if account.refreshing: return
+            account.refreshing = True
+            account.save()
             download_headers(self.account, self.password, self.conn, self.chunk, self.maxmsgs)
             self.account.refreshing = False
             self.account.save()
@@ -347,11 +419,15 @@ if __name__ == '__main__':
     # access_token = OAuthEntity(token, secret)
     # xoauth_string = GenerateXOauthString(consumer, access_token, gmailaddr, 'imap',
     #                                      None, None, None)
-    print "enter your gmail email and password!"
-    sys.stdout.write("Username: ")
-    sys.stdout.flush()
-    username = sys.stdin.readline().strip()
-    passw = getpass.getpass("Password: ")
+    if len( sys.argv[1]) >= 3:
+        username = sys.argv[1]
+        passw = sys.argv[2]
+    else:
+        print "enter your gmail email and password!"
+        sys.stdout.write("Username: ")
+        sys.stdout.flush()
+        username = sys.stdin.readline().strip()
+        passw = getpass.getpass("Password: ")
 
     user = authenticate(username=username, password=passw)
     if not user:

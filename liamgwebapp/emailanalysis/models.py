@@ -63,7 +63,7 @@ class Email(models.Model):
     fr = models.ForeignKey(Contact, related_name="as_sender", db_column='fr')
     subj = models.TextField()
     date = models.DateTimeField()
-    imapid = models.IntegerField()
+    imapid = models.IntegerField(unique=True)
     mid = models.TextField(unique=True)
     reply = models.TextField(null=True)  # references Email.mid
     multipart = models.BooleanField()
@@ -71,6 +71,14 @@ class Email(models.Model):
     tos = models.ManyToManyField(Contact, related_name="as_sendee", db_table='tos')
     ccs = models.ManyToManyField(Contact, related_name="as_cc", db_table='ccs')
     bccs = models.ManyToManyField(Contact, related_name="as_bcc", db_table='bccs')
+
+class Content(models.Model):
+    class Meta:
+        db_table = "contents"
+
+    email = models.OneToOneField(Email, db_column="emailid", related_name="content",
+                                 to_field="imapid")
+    text = models.TextField() 
 
 class Ref(models.Model):
     class Meta:
