@@ -95,7 +95,7 @@ class ModeDatum:
         for key,vals in self.masterMap.items():
             ret["labels"].append(make_human_readable(self.thismode, key))
             ret["y"].append(vals.getResponseRate())
-        print ret
+
         return ret
 
 def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
@@ -109,18 +109,43 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
    # typeMap["bccs"] = ModeDatum(mode)
    # conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
     c = conn.cursor()
+
     try:
-        myid = int(c.execute("select id from contacts where email = '%s';" % emailAddy).fetchone()[0])
+        #DEPRECATED: this is the sqlite query that is no longer used
+        #myid = int(c.execute("select id from contacts where email = '%s';" % emailAddy).fetchone()[0])
+
+        #this is the new postgres query
+        c.execute("select id from contacts where email = '%s';" % emailAddy)
+        myid = int(c.fetchone()[0])
+
         if SINGLE_REPLIER:
-            replid = int(c.execute("select id from contacts where email = '%s';" % replyAddy).fetchone()[0])
+            #DEPRECATED: this is the sqlite query that is no longer used
+            #replid = int(c.execute("select id from contacts where email = '%s';" % replyAddy).fetchone()[0])
+
+            #this is the new postgres query
+            #it allows for users to filter by person for that specific user's contact list. it accounts for overlaps of contacts between users (i.e. it is possible for two users to have a similar contact)
+            c.execute("select id from contacts where email = '%s' and owner_id = (select id from auth_user where username = '%s');" % (replyAddy, emailAddy)) 
+
+            replid = int(c.fetchone()[0])
+
         for tbl,trgt in typeMap.items():
             msgIds = []
-            execCode_Denominator = "select msgs.date,msgs.id,msgs.subj from msgs inner join %s on msgs.id = %s.msg and msgs.fr = %d and msgs.date >= '%s' and msgs.date <= '%s'" % (tbl, tbl, myid, start, end)
+#            execCode_Denominator = "select emails.date,emails.id,emails.subj from emails inner join %s on emails.id = %s.email_id and emails.fr = %d and emails.date >= '%s' and emails.date <= '%s' " % (tbl, tbl, myid, start, end)
+
+            #needs to accept email accounts to distinguish between users
+            execCode_Denominator = "select emails.date, emails.id, emails.subj from emails inner join %s on emails.id = %s.email_id and emails.account = (select id from auth_user where username = '%s') and emails.date >= '%s' and emails.date <= '%s' " % (tbl, tbl, emailAddy, start, end)
+
             if SINGLE_REPLIER:
-                execCode_Denominator += " and %s.cid = %d" % (tbl, replid)
-            print(execCode_Denominator)
-            res = c.execute(execCode_Denominator).fetchall()
-            print res
+            #    execCode_Denominator += " and %s.contact_id = %d" % (tbl, replid)
+                execCode_Denominator += " and %s.contact_id = %d " % (tbl, replid)
+
+            #DEPRECATED: this is the sqlite query that is no longer used
+            #res = c.execute(execCode_Denominator).fetchall()
+            
+            #execute the postgres numerator query and push to the res
+            c.execute(execCode_Denominator)
+            res = c.fetchall()
+
             for item in res:
                 if SINGLE_REPLIER and int(item[1]) in msgIds:
                     continue
@@ -128,11 +153,21 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
                 trgt.addSent(get_index(mode, item[0]), 1)
             addlString = ""
             if SINGLE_REPLIER:
-                addlString = " and %s.cid = %d" % (tbl, replid)
-            execCode_Numerator = "select thedate,intid,e.id from ((select msgs.id as 'intid',msgs.date as 'thedate',msgs.mid as 'msgid' from %s inner join msgs on %s.msg = msgs.id and msgs.fr = %d%s and msgs.date >= '%s' and msgs.date <= '%s') as m left outer join msgs as e on msgid = e.reply) where e.reply not NULL " % (tbl, tbl,myid, addlString, start, end)
+                addlString = " and %s.contact_id = %d" % (tbl, replid)
+#            execCode_Numerator = "select thedate,intid,e.id from ((select emails.id as intid, emails.date as thedate,emails.mid as msgid from %s inner join emails on %s.email_id = emails.id and emails.fr = %d%s and emails.date >= '%s' and emails.date <= '%s') as m left outer join emails as e on msgid = e.reply) where e.reply is not NULL " % (tbl, tbl,myid, addlString, start, end)
+ 
+            execCode_Numerator = "select thedate, intid, e.id from ((select emails.id as intid, emails.date as thedate, emails.mid as msgid from %s inner join emails on %s.email_id = emails.id and emails.account = (select id from auth_user where username = '%s') and emails.date >= '%s' and emails.date <= '%s') as m left outer join emails as e on msgid = e.reply) where e.reply is not NULL " % (tbl, tbl,emailAddy, start, end)
+
             if SINGLE_REPLIER:
-                execCode_Numerator += " and e.fr = %d" % replid
-            res = c.execute(execCode_Numerator).fetchall()
+  #              execCode_Numerator += " and e.fr = %d" % replid
+                execCode_Numerator += " and e.fr = %d " % replid
+
+            #DEPRECATED
+            #res = c.execute(execCode_Numerator).fetchall()
+
+            c.execute(execCode_Numerator)
+            res = c.fetchall()
+
             msgIds = []
             for item in res:
                 msgIndex = "%s.%s" % (item[1], item[2])

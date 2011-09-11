@@ -15,12 +15,10 @@ def get_top_sent(num, start, end, user, conn):
         dateStr = " date >= '" + start + "' and date < '"+  end + "'"
         
         #SQL command to group by email
-        sqlCmd = "select email,count(*) as c from contacts inner join (select cid, date, subj from (select id, date, subj from msgs where fr = (select id from contacts where email = '%s') and %s) as 'msgids' inner join tos on tos.msg = msgids.id) as 'cids' on contacts.id = cids.cid group by email order by c desc limit %d;" % (user, dateStr, num)
-        
-        
+        sqlCmd = "select email, count(*) as c from contacts inner join (select contact_id, date, subj from (select id, date, subj from emails where fr = (select id from contacts where email = '%s' and owner_id = (select id from auth_user where email = '%s')) and %s) as msgids inner join tos on tos.email_id = msgids.id) as cids on contacts.id = cids.contact_id group by email order by c desc limit %d;" % (user, user, dateStr, num)
         #execute the sql command 
-        res = c.execute(sqlCmd)
-        res = res.fetchall()
+        c.execute(sqlCmd)
+        res = c.fetchall()
         
         emails = []
         number = []
@@ -47,18 +45,21 @@ def get_top_sent(num, start, end, user, conn):
 
 def get_emails_topsent(start, end, user, conn):
     c = conn.cursor()
-    dateStr = " date >= '" + start + "' and date < '"+  end + "'" 
-    sql = "select email,count(*) as c from contacts inner join (select cid, date, subj from (select id, date, subj from msgs where fr = (select id from contacts where email = '%s') and %s) as 'msgids' inner join tos on tos.msg = msgids.id) as 'cids' on contacts.id = cids.cid group by email order by c desc;" % (user, dateStr)
+    try:
+        dateStr = " date >= '" + start + "' and date < '"+  end + "'" 
+        sql = "select email, count(*) as c from contacts inner join (select contact_id, date, subj from (select id, date, subj from emails where fr = (select id from contacts where email = '%s' and owner_id = (select id from auth_user where email = '%s'))and %s) as msgids inner join tos on tos.email_id = msgids.id) as cids on contacts.id = cids.contact_id group by email order by c desc;" % (user, user, dateStr)
 
-    res = c.execute(sql)
-    res = res.fetchall()
+        c.execute(sql)
+        res = c.fetchall()
 
-    emails = []
-    for item in res:
-        emails.append(item[0])
+        emails = []
+        for item in res:
+            emails.append(item[0])
 
-    return emails
-
+        return emails
+    except Exception, e:
+        print e
+        print "exception in get emails topsent"
 
 if __name__ == "__main__":
     if len(sys.argv) == 5:

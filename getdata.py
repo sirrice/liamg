@@ -92,6 +92,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
         return False
 
 
+    #get the data from the imap search using the search string
     typ, dat = imap_conn.search(None, search_string)
     iternum = 0
 
@@ -137,6 +138,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
                         account.save()
                         iternum += 1
                         conn.commit()
+
                 except Exception, err:
                     import traceback
                     print >> sys.stderr, "=== msg: %d ===" % mid
@@ -153,6 +155,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
 
             dbcost += time.time() - start
             if maxmsgs and iternum >= maxmsgs: break
+            
 
     except Exception, err:
         import traceback
@@ -201,10 +204,12 @@ def proc_msg(cur, account, imapid, d):
         e = email.message_from_string(d[1])
     except Exception, e:
         return None
-
+    
     
     multipart = e.is_multipart()
     to = extract_names(e.get('To', '')) 
+    
+    #break apart the headers of each email
     fr =  extract_names(e['From'])
     cc = extract_names(e.get('CC', ''))
     bcc = extract_names(e.get('BCC', ''))
@@ -220,6 +225,8 @@ def proc_msg(cur, account, imapid, d):
         if not len(get_tuples(cur, "emails", "mid", mid)):
             add_msg(cur, account, fr[0], subj, date, imapid, mid,
                     replyto, multipart, to, cc, bcc, refs)
+        
+        
         return True
     except Exception, err:
         import traceback
@@ -263,9 +270,10 @@ def extract_refs(txt):
             refs.append(res.group('ref'))
     return refs
     
+
+#extract names from the headers of each email- assume separated by comma
 def extract_names(txt):
     txt = clean(txt)
-
     emails = set()
     contacts = []
     for block in txt.strip(' ,').split(','):
@@ -419,7 +427,7 @@ if __name__ == '__main__':
     # access_token = OAuthEntity(token, secret)
     # xoauth_string = GenerateXOauthString(consumer, access_token, gmailaddr, 'imap',
     #                                      None, None, None)
-    if len( sys.argv[1]) >= 3:
+    if len( sys.argv ) >= 3:
         username = sys.argv[1]
         passw = sys.argv[2]
     else:

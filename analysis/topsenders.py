@@ -5,12 +5,11 @@ import sqlite3, email, math, imaplib
 from dateutil.parser import parse
 from datetime import timedelta
 import json
-
+import psycopg2
 import re
 
 
 def get_top_senders(num, startdate, enddate, user, conn):
-
     c = conn.cursor()
     try:
         num = num+1
@@ -19,18 +18,23 @@ def get_top_senders(num, startdate, enddate, user, conn):
         #everything then we will not be able to filter out the spam that people send to the user
         #email_list = ["'%yahoo%'", "'%gmail%'", "'%aol%'", "'%hotmail%'", "'%live.com%'"]
         #for now going to use the senders list to predict who is important -> a person wouldn't send an email unless they were on the senders list
-
-        email_list = topsent.get_emails_topsent(startdate, enddate, user, conn)        
+        
+        email_list = topsent.get_emails_topsent(startdate, enddate, user, conn)      
         email_list = ["'%{0}%'".format(email) for email in email_list]
 
         emailStr = "and (email like " + " or email like ".join(email_list) + ")"
         dateStr = "and date >= '" + startdate + "' and date < '" + enddate + "'"
-        execCode = 'select email, count(*) as c from msgs, contacts where msgs.fr = contacts.id %s %s group by email order by c desc limit %d;' % (emailStr, dateStr, num)
+
+        #IMPORTANT: create a user string so that you can distinguish between users - now will support multiple users on the same database
+        userStr = "and account = (select id from auth_user where username ='" + user + "')"
+
+        execCode = 'select email, count(*) as c from emails, contacts where emails.fr = contacts.id %s %s %s group by email order by c desc limit %d;' % (userStr, emailStr, dateStr, num)
+
         
-        print execCode
-        res = c.execute(execCode)
-        res = res.fetchall()
+        c.execute(execCode)
+        res = c.fetchall()
     except Exception, e:
+        print 'theres an error. we are in the catch block.'
         print >> sys.stderr, e
         print e
         res = None
@@ -41,10 +45,6 @@ def get_top_senders(num, startdate, enddate, user, conn):
         total += int(item[1])
         emails.append(item[0])
         numbers.append(item[1])
-#    for item in res:
- #       length = float(item[1]) / float(total) * 100
-
-        #print "%35s %9s %s" % (item[0], item[1], "*"*int(length))
 
     #get rid of the current user in the lists
     if user in emails:

@@ -11,7 +11,9 @@ class LineData(object):
         return map(tuple, map(lambda row: map(float, row), res))
 
     def get_data(self, queries, conn):
-#        conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
+
+        #DEPRECATED: getting rid of the sqlite database queries
+        #        conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
 
         cur = conn.cursor()
 
@@ -23,7 +25,8 @@ class LineData(object):
         i = 0
         for title, sql in queries:
 
-            res = cur.execute(sql)
+            cur.execute(sql)
+            res = cur.fetchall()
             res = self.proc_rows(res)
 
             vals = []
@@ -85,37 +88,51 @@ class LineData(object):
                 break
 
 
-
+#DEPRECATED: used for the sqlite prototype
 #select distinct m.id from msgs m, contacts c, tos t where t.msg = m.id and (c.id = m.fr or  (t.msg = m.id and c.id = t.cid)) and c.email like '%zhenya%';
 
 
 class RepliesByHour(object):
-    def get_sql(self, lat=True, reply=True, start=None, end = None, daysofweek = None, email="sirrice"):
+    #set default options so that email = "" --> might need to change this
+    def get_sql(self, lat=True, reply=True, start=None, end = None, daysofweek = None, email="", currid=None):
         WHERE = []
-        WHERE.append("l.lat < 1")
+
+        
+        #URGENT: Need to also deal with multiple users and accounts
+        WHERE.append("l.account = %d" % currid)
+
+        #WHERE.append("l.lat < 1")
         if start:
-            WHERE.append("datetime(sentdate) > datetime('%s')" % start.strftime('%Y-%m-%d'))
+           # WHERE.append("datetime(sentdate) > datetime('%s')" % start.strftime('%Y-%m-%d'))
+            WHERE.append("date_trunc('day', origdate) > DATE('%s')" % start.strftime('%Y-%m-%d'))
         if end:
-            WHERE.append("datetime(sentdate) < datetime('%s')" % end.strftime('%Y-%m-%d'))
-        if daysofweek:
-            WHERE.append("strftime('%%w', sentdate) in (%s)" % ','.join(map(lambda x: "'%s'" % x, daysofweek)))
+            #WHERE.append("datetime(sentdate) < datetime('%s')" % end.strftime('%Y-%m-%d'))
+            WHERE.append("date_trunc('day', origdate) < DATE('%s')" % end.strftime('%Y-%m-%d'))
+#        if daysofweek:
+            #WHERE.append("strftime('%%w', sentdate) in (%s)" % ','.join(map(lambda x: "'%s'" % x, daysofweek)))
         if reply is None:
-            WHERE.append("(me.id = l.replyuid or me.id = l.senduid)")
+            #WHERE.append("(me.id = l.replyuid or me.id = l.senduid)")
+            WHERE.append("(me.id = l.replier or me.id = l.sender)")
         elif reply:
-            WHERE.append("me.id = l.replyuid")
+            #WHERE.append("me.id = l.replyuid")
+            WHERE.append("me.id = l.replier")
         else:
-            WHERE.append("me.id = l.senduid")
+            #WHERE.append("me.id = l.senduid")
+            WHERE.append("me.id = l.sender")
         if email:
             WHERE.append("me.email like '%%%s%%'" % email)
 
         if lat:
-            SELECT = "avg(lat) * 60 as avglat, strftime('%H', sentdate) as hour" # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
+            SELECT = "avg(lat) * 60 as avglat, strftime('%H', sentdate) as hour" 
+            # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
         else:
-            SELECT = "count(*), strftime('%H', sentdate) as hour"#, CAST(strftime('%M', sentdate)/60 as integer) as minute"
-
+            #SELECT = "count(*), strftime('%H', sentdate) as hour"
+            #, CAST(strftime('%M', sentdate)/60 as integer) as minute"
+            SELECT = "count(*), date_part('hour',origdate) as hour"
         WHERE = ' and '.join(WHERE)
-
-        sql = "SELECT %s FROM latency l, contacts me WHERE %s GROUP BY hour ORDER BY hour asc;" % (SELECT, WHERE)
+        
+        sql = "SELECT %s FROM latencies l, contacts me WHERE %s GROUP BY hour ORDER BY hour asc;" % (SELECT, WHERE)
+        print sql
         return sql
 
 

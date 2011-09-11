@@ -37,7 +37,7 @@ from statsbyhour import *
 from timeline import *
 from contacts import Contacts
 import getdata
-
+import psycopg2
 
 #getdata.setup_db(conn)
 
@@ -167,9 +167,32 @@ def login_view(request):
                     # os.system('./analyzedb.sh {0}'.format(dbname))
                     # conn.close()
 
-                    # redirect to results page?
+                    #IMPORTANT: create the connection string and connect to the database
+                    conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
+                    conn = psycopg2.connect(conn_string)
+                    getdata.download_headers(account, password, conn)
+                    
+                    #make a connection and run the latencies script
+                    c = conn.cursor()
+                    
+                    #get the account id for the specific user
+                    actidSQL = "select id from accounts where user_id = (select id from auth_user where username = '%s');" % user
+                    c.execute(actidSQL)
+                    actid = c.fetchone()[0]
+                    print actid
+                    
+                    #fill the latencies table
+                    latencies_sql = "insert into latencies(account, replier, sender, replyemail, origemail, replydate, origdate) select m1.account, c1.id as replier, c2.id as sender, m1.id as replyemail, m2.id as origemail, m1.date as replydate, m2.date as origdate from contacts c1, contacts c2, emails m1, emails m2 where m1.id > m2.id and m1.reply = m2.mid and m1.reply is not null and c1.id = m1.fr and c2.id = m2.fr and m1.account = %s and m1.account = m2.account;" % (actid)
+
+
+                    #commit the data
+                    c.execute(latencies_sql)
+                    conn.commit()
+
+
+                    #redirect to results page
                     return HttpResponseRedirect("/emailanalysis/results")
-#                    return HttpResponse('data downloaded')
+
         else:
             return HttpResponse('form invalid')
     else:
@@ -234,16 +257,30 @@ def getjson(request, datatype):
     if end: end = parse(end)
     if daysofweek: daysofweek = daysofweek.split(",")
     if reply is not None: reply = bool(reply)
-
-    curruser = Userdbs.objects.get(username=request.user)
-    print request.user
-    print curruser.dbname
-
-    conn = sqlite3.connect(curruser.dbname, detect_types=sqlite3.PARSE_DECLTYPES)
     
-    # db call to get data
+
+    curruser = User.objects.get(username=request.user)
+
+    #ATTENTION: going to need to change the host once we deploy live
+    conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
+
+    #connect to db to get the data
+    conn = psycopg2.connect(conn_string)
+
+    #DEPRECATED: for the sqlite prototype database
+    #conn = sqlite3.connect(curruser.dbname, detect_types=sqlite3.PARSE_DECLTYPES)
+
+
+    #get the curruser id so that you can pass it to the functions below
+    curridsql = "select id from accounts where user_id = (select id from auth_user where username = '%s')" % curruser
+    c = conn.cursor()
+    c.execute(curridsql)
+    currid = c.fetchone()[0]
+
+
+
+    #get the top people who respond to the user
     if datatype == 'topsenders':
-        
         req = request.REQUEST
         start = req.get('start', None)
         end = req.get ('end', None)
@@ -251,6 +288,7 @@ def getjson(request, datatype):
         email = curruser.username
         data = topsenders.get_top_senders(top, start, end, email, conn)
     
+    #get the sent top ten people who the user contacts
     elif datatype == "topsent":
         req = request.REQUEST
         start = req.get('start', None)
@@ -258,8 +296,8 @@ def getjson(request, datatype):
         top = 10 
         email = curruser.username
         data = topsent.get_top_sent(top, start, end, email, conn)
-        print email
 
+    #get the rate for a specifc user (filtered) and for the general population
     elif datatype == "getrate":
         req = request.REQUEST
         start = req.get('start', None)
@@ -269,33 +307,42 @@ def getjson(request, datatype):
         mode = req.get('mode', None)
         data = responseRateByTime.get_response_rate(mode, start, end, emailAddy, replyAddy, conn)
 
+    #use this to get the count in the first graph
     elif datatype == "byhour":
         ebh = RepliesByHour()
         queries = []
         print "EMAIL", email
+
         queries.append(('y', ebh.get_sql(lat=lat, reply=reply, start=start, end=end,
-                                         daysofweek=daysofweek, email=email)))
+                                         daysofweek=daysofweek, email=email, currid = currid)))
         ld = LineData()
         data = ld.get_data(queries, conn)
 
+    #not sure what this does yet?
     elif datatype == "contacts":
         contacts = Contacts()
         data = contacts.get_data(conn)
 
+    #get the second graph that shows the response time
     elif datatype == "getlatency":
         bd = ByDay()
         queries = []
         queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
                                         granularity=granularity, email=email)))
         ld = BDLineData()
+
         data = ld.get_data(queries, conn, 0, granularity=granularity, start=start, end=end)
 
+
+    #use this to get the small graph next to the top ten
     elif datatype == "getcount":
         bd = ByDayNorm()
         queries = []
-        queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
-                                        granularity=granularity, email=email)))
+
+        #get the queries for the line charts in the top ten
+        queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end, granularity=granularity, email=email, currid=currid)))
         ld = BDLineData()
+
         data = ld.get_data(queries, conn, 1, granularity=granularity, start=start, end=end)
 
     else:
