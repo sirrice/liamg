@@ -93,3 +93,4 @@ class Latency(models.Model):
     replydate = models.DateTimeField( db_column="replydate")
     origdate = models.DateTimeField( db_column="origdate")    
     
+    #do we need to add another field here to get the time difference? I think we had something in sqlite for this called 'lat'

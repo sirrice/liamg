@@ -318,10 +318,12 @@ def getjson(request, datatype):
         ld = LineData()
         data = ld.get_data(queries, conn)
 
+    #not sure what this does yet?
     elif datatype == "contacts":
         contacts = Contacts()
         data = contacts.get_data(conn)
 
+    #get the second graph that shows the response time
     elif datatype == "getlatency":
         bd = ByDay()
         queries = []
