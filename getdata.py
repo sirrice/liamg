@@ -116,12 +116,13 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
     try:
         for idx in xrange(0, int(math.ceil(float(len(mids))/chunk))):
             curids = mids[int(idx*chunk):int((idx*chunk)+chunk)]
+            print "processing messages %d - %d" % (idx*chunk, min((idx+1) * chunk,len(mids)))
 
+            
             start = time.time()
             typ, dat = imap_conn.fetch(','.join(map(str,curids)), '(BODY.PEEK[HEADER] BODYSTRUCTURE)')
             dlcost += time.time() - start
 
-            print "processing messages %d - %d" % (idx*chunk, min((idx+1) * chunk,len(mids)))
             start = time.time()
             for d in dat:
                 if d == ')': continue
@@ -442,5 +443,5 @@ if __name__ == '__main__':
     else:
         account = Account.objects.get(user=user)
 
-    download_headers(account, passw, conn, chunk=100, maxmsgs=None)
+    download_headers(account, passw, conn, chunk=1000, maxmsgs=None, gettext=True)
     conn.close()

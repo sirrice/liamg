@@ -8,6 +8,7 @@ This requires the following modules:
 
  - dateutil
  - psycopg2 (http://initd.org/psycopg/download/)
+ - pyparsing
 
 For the other packages, they are included in `modules/`.  
 For example, you can install dateutil using the following
