@@ -97,7 +97,9 @@ class RepliesByHour(object):
         #URGENT: Need to also deal with multiple users and accounts
         WHERE.append("l.account = %d" % currid)
 
-        #WHERE.append("l.lat < 1")
+
+        #set the upperbound on the emails to consider for latency - if the response didn't come within 60 hrs then don't consider those responses
+        WHERE.append("l.lat < 60*60*60")
         if start:
            # WHERE.append("datetime(sentdate) > datetime('%s')" % start.strftime('%Y-%m-%d'))
             WHERE.append("date_trunc('day', origdate) > DATE('%s')" % start.strftime('%Y-%m-%d'))
