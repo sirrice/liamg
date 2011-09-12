@@ -36,16 +36,21 @@ def make_human_readable(mode, ind):
         dayofweekMap[5] = "Saturday"
         dayofweekMap[6] = "Sunday"
         return dayofweekMap[ind]
+    
+    #if not in the mode day then label as time of the day
     indStr = "%2d" % ind
-    ampm = " AM"
-    if ind >= 12:
+    ampm = ""
+    if ind > 12:
         ampm = " PM"
-        indStr = "%02d:00" % (ind - 11)
+        indStr = "%d" % (ind - 12)
     elif ind == 0:
-        indStr = "12:00"
+        indStr = "Midnight"
     else:
-        indStr = "%02d:00" % ind
+        indStr = "%d" % ind
+        ampm = " AM"
     indStr += ampm
+    if indStr == "12 AM":
+        indStr = "Noon"
     return indStr
 
 def get_index(mode, thetime):
