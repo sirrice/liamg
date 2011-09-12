@@ -99,6 +99,7 @@ class Latency(models.Model):
     replyemail = models.ForeignKey(Email, related_name="lat_reply", db_column="replyemail")
     origemail = models.ForeignKey(Email, related_name="lat_orig", db_column="origemail")
     replydate = models.DateTimeField( db_column="replydate")
-    origdate = models.DateTimeField( db_column="origdate")    
+    origdate = models.DateTimeField( db_column="origdate")
+    lat = models.FloatField( db_column="lat" )
     
     #do we need to add another field here to get the time difference? I think we had something in sqlite for this called 'lat'
