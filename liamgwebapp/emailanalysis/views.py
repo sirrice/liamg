@@ -152,21 +152,6 @@ def login_view(request):
                     account = Account(user=user, host="imap.googlemail.com", username="username")
                     account.save()
 
-                    # # create database name for user
-                    # userdb = Userdbs(username=username)
-                    # userdb.save() # creates userdb.id
-                    # dbname = 'user{0}.db'.format(userdb.id)
-                    # userdb.dbname = dbname
-                    # userdb.save()
-
-                    # conn = sqlite3.connect(dbname, detect_types=sqlite3.PARSE_DECLTYPES)
-
-                    # #need to find a way to make one database
-                    # getdata.setup_db(conn)
-                    # getdata.download_headers('imap.googlemail.com',username,password,conn)
-                    # os.system('./analyzedb.sh {0}'.format(dbname))
-                    # conn.close()
-
                     #IMPORTANT: create the connection string and connect to the database
                     conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
                     conn = psycopg2.connect(conn_string)
@@ -181,23 +166,8 @@ def login_view(request):
                     actid = c.fetchone()[0]
                     print actid
                     
-                    #fill the latencies table
-                    latencies_sql = """INSERT into latencies
-                    (account, replier, sender, replyemail, origemail, replydate, origdate, lat)
-                    SELECT m1.account, c1.id as replier, c2.id as sender,
-                           m1.id AS replyemail, m2.id AS origemail,
-                           m1.date AS replydate, m2.date AS origdate,
-                           (extract (epoch from m1.date::timestamp) - extract(epoch from m2.date::timestamp)) AS lat
-                    FROM contacts c1, contacts c2, emails m1, emails m2
-                    WHERE m1.id > m2.id AND m1.reply = m2.mid AND
-                          c1.id = m1.fr AND c2.id = m2.fr AND m1.account = %s AND
-                          m1.account = m2.account;""" % (actid)
-
-
-                    #commit the data
-                    c.execute(latencies_sql)
-                    conn.commit()
-
+                    #call refresh the latencies table
+                    getdata.execute_latencies(actid, conn)
 
                     #redirect to results page
                     return HttpResponseRedirect("/emailanalysis/results")

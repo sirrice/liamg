@@ -56,6 +56,28 @@ def find_text(bs, prefix=''):
                 if ret is not None: return ret
                 i += 1
 
+def execute_latencies(actid, conn):
+    #make a cursor object to execute the sql script
+    c = conn.cursor()
+     #fill the latencies table
+    latencies_sql = """INSERT into latencies
+                    (account, replier, sender, replyemail, origemail, replydate, origdate, lat)
+                    SELECT m1.account, c1.id as replier, c2.id as sender,
+                           m1.id AS replyemail, m2.id AS origemail,
+                           m1.date AS replydate, m2.date AS origdate,
+                           (extract (epoch from m1.date::timestamp) - extract(epoch from m2.date::timestamp)) AS lat
+                    FROM contacts c1, contacts c2, emails m1, emails m2
+                    WHERE m1.id > m2.id AND m1.reply = m2.mid AND
+                          c1.id = m1.fr AND c2.id = m2.fr AND m1.account = %s AND
+                          m1.account = m2.account;""" % (actid)
+
+    
+    #commit the data
+    c.execute(latencies_sql)
+    conn.commit()
+
+
+    
 
 def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=True):
     """
