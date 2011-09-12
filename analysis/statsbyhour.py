@@ -121,6 +121,7 @@ class RepliesByHour(object):
         if lat:
 #            SELECT = "avg(lat) * 60 as avglat, strftime('%H', sentdate) as hour" 
             # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
+            # lat is in seconds so need to convert to hours
             SELECT = "avg(lat)/60/60 as avglat, date_part('hour', origdate) as hour"
         else:
             #SELECT = "count(*), strftime('%H', sentdate) as hour"
