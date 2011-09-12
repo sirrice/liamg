@@ -88,10 +88,6 @@ class LineData(object):
                 break
 
 
-#DEPRECATED: used for the sqlite prototype
-#select distinct m.id from msgs m, contacts c, tos t where t.msg = m.id and (c.id = m.fr or  (t.msg = m.id and c.id = t.cid)) and c.email like '%zhenya%';
-
-
 class RepliesByHour(object):
     #set default options so that email = "" --> might need to change this
     def get_sql(self, lat=True, reply=True, start=None, end = None, daysofweek = None, email="", currid=None):
@@ -123,8 +119,9 @@ class RepliesByHour(object):
             WHERE.append("me.email like '%%%s%%'" % email)
 
         if lat:
-            SELECT = "avg(lat) * 60 as avglat, strftime('%H', sentdate) as hour" 
+#            SELECT = "avg(lat) * 60 as avglat, strftime('%H', sentdate) as hour" 
             # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
+            SELECT = "avg(lat)/60/60 as avglat, date_part('hour', origdate) as hour"
         else:
             #SELECT = "count(*), strftime('%H', sentdate) as hour"
             #, CAST(strftime('%M', sentdate)/60 as integer) as minute"
