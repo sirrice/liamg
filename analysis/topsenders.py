@@ -24,7 +24,6 @@ def get_top_senders(num, startdate, enddate, user, conn):
         email_list = ["'%{0}%'".format(email) for email in email_list]
 
         emailStr = "and (email like " + " or email like ".join(email_list) + ")"
-        emailStr = ""
         dateStr = "and date >= '" + startdate + "' and date < '" + enddate + "'"
 
         #IMPORTANT: create a user string so that you can distinguish between users - now will support multiple users on the same database
