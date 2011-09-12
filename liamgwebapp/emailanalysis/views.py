@@ -170,7 +170,7 @@ def login_view(request):
                     #IMPORTANT: create the connection string and connect to the database
                     conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
                     conn = psycopg2.connect(conn_string)
-                    getdata.download_headers(account, password, conn)
+                    getdata.download_headers(account, password, conn, gettext=False)
                     
                     #make a connection and run the latencies script
                     c = conn.cursor()
