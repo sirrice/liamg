@@ -286,11 +286,6 @@ def getjson(request, datatype):
         mode = req.get('mode', None)
         data = responseRateByTime.get_response_rate(mode, start, end, emailAddy, replyAddy, conn)
 
-        for d in data:
-            if d > 100:
-                d = 100
-            else: 
-                continue
 
     #use this to get the count in the first graph and maybe the second graph?
     elif datatype == "byhour":
