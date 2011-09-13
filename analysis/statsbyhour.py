@@ -11,10 +11,8 @@ class LineData(object):
         return map(tuple, map(lambda row: map(float, row), res))
 
     def get_data(self, queries, conn):
-
-        #DEPRECATED: getting rid of the sqlite database queries
-        #        conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
-
+        
+        #get the data. connect to the database and create the labels for the x and y axis
         cur = conn.cursor()
 
         colors = ['r-', 'b-', 'o-', 'y-', 'g-']
@@ -99,7 +97,7 @@ class RepliesByHour(object):
 
 
         #set the upperbound on the emails to consider for latency - if the response didn't come within 60 hrs then don't consider those responses
-        WHERE.append("l.lat < 60*60*60")
+        WHERE.append("l.lat < 60*60*60 AND l.lat > 0")
         if start:
            # WHERE.append("datetime(sentdate) > datetime('%s')" % start.strftime('%Y-%m-%d'))
             WHERE.append("date_trunc('day', origdate) > DATE('%s')" % start.strftime('%Y-%m-%d'))
