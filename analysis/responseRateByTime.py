@@ -36,16 +36,21 @@ def make_human_readable(mode, ind):
         dayofweekMap[5] = "Saturday"
         dayofweekMap[6] = "Sunday"
         return dayofweekMap[ind]
+    
+    #if not in the mode day then label as time of the day
     indStr = "%2d" % ind
-    ampm = " AM"
-    if ind >= 12:
+    ampm = ""
+    if ind > 12:
         ampm = " PM"
-        indStr = "%02d:00" % (ind - 11)
+        indStr = "%d" % (ind - 12)
     elif ind == 0:
-        indStr = "12:00"
+        indStr = "Midnight"
     else:
-        indStr = "%02d:00" % ind
+        indStr = "%d" % ind
+        ampm = " AM"
     indStr += ampm
+    if indStr == "12 AM":
+        indStr = "Noon"
     return indStr
 
 def get_index(mode, thetime):
@@ -63,7 +68,12 @@ class Datum:
     def getResponseRate(self):
         if self.numSent == 0:
             return 0.0
-        return float(self.numReplied) / float(self.numSent) * 100.0 
+
+        #cap all the data at 100% --> if a person replies twice to the same email original calculation will make 200%. This adjusts so that it becomes 100%
+        if float(self.numReplied)/float(self.numSent) * 100 > 100:
+            return 100
+        else:
+            return float(self.numReplied) / float(self.numSent) * 100.0 
 
 class ModeDatum:
     def __init__(self, themode):
@@ -95,7 +105,7 @@ class ModeDatum:
         for key,vals in self.masterMap.items():
             ret["labels"].append(make_human_readable(self.thismode, key))
             ret["y"].append(vals.getResponseRate())
-
+            
         return ret
 
 def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
@@ -111,16 +121,11 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
     c = conn.cursor()
 
     try:
-        #DEPRECATED: this is the sqlite query that is no longer used
-        #myid = int(c.execute("select id from contacts where email = '%s';" % emailAddy).fetchone()[0])
-
         #this is the new postgres query
         c.execute("select id from contacts where email = '%s';" % emailAddy)
         myid = int(c.fetchone()[0])
 
         if SINGLE_REPLIER:
-            #DEPRECATED: this is the sqlite query that is no longer used
-            #replid = int(c.execute("select id from contacts where email = '%s';" % replyAddy).fetchone()[0])
 
             #this is the new postgres query
             #it allows for users to filter by person for that specific user's contact list. it accounts for overlaps of contacts between users (i.e. it is possible for two users to have a similar contact)
@@ -130,18 +135,14 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
 
         for tbl,trgt in typeMap.items():
             msgIds = []
-#            execCode_Denominator = "select emails.date,emails.id,emails.subj from emails inner join %s on emails.id = %s.email_id and emails.fr = %d and emails.date >= '%s' and emails.date <= '%s' " % (tbl, tbl, myid, start, end)
 
-            #needs to accept email accounts to distinguish between users
+            #needs to accept email accounts to distinguish between users --> executable SQL query for the denominator
             execCode_Denominator = "select emails.date, emails.id, emails.subj from emails inner join %s on emails.id = %s.email_id and emails.account = (select id from auth_user where username = '%s') and emails.date >= '%s' and emails.date <= '%s' " % (tbl, tbl, emailAddy, start, end)
 
             if SINGLE_REPLIER:
             #    execCode_Denominator += " and %s.contact_id = %d" % (tbl, replid)
                 execCode_Denominator += " and %s.contact_id = %d " % (tbl, replid)
 
-            #DEPRECATED: this is the sqlite query that is no longer used
-            #res = c.execute(execCode_Denominator).fetchall()
-            
             #execute the postgres numerator query and push to the res
             c.execute(execCode_Denominator)
             res = c.fetchall()
@@ -154,17 +155,15 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
             addlString = ""
             if SINGLE_REPLIER:
                 addlString = " and %s.contact_id = %d" % (tbl, replid)
-#            execCode_Numerator = "select thedate,intid,e.id from ((select emails.id as intid, emails.date as thedate,emails.mid as msgid from %s inner join emails on %s.email_id = emails.id and emails.fr = %d%s and emails.date >= '%s' and emails.date <= '%s') as m left outer join emails as e on msgid = e.reply) where e.reply is not NULL " % (tbl, tbl,myid, addlString, start, end)
- 
+            
+            #create numerator sql query
             execCode_Numerator = "select thedate, intid, e.id from ((select emails.id as intid, emails.date as thedate, emails.mid as msgid from %s inner join emails on %s.email_id = emails.id and emails.account = (select id from auth_user where username = '%s') and emails.date >= '%s' and emails.date <= '%s') as m left outer join emails as e on msgid = e.reply) where e.reply is not NULL " % (tbl, tbl,emailAddy, start, end)
 
             if SINGLE_REPLIER:
-  #              execCode_Numerator += " and e.fr = %d" % replid
+                #if this is for a specific person, then find the id it's from and add to the sql query
                 execCode_Numerator += " and e.fr = %d " % replid
 
-            #DEPRECATED
-            #res = c.execute(execCode_Numerator).fetchall()
-
+            #execute the code for the numerator
             c.execute(execCode_Numerator)
             res = c.fetchall()
 
@@ -178,6 +177,8 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
     except Exception, e:
         print "Caught exception"
         print >> sys.stderr, e
+
+    #return the json dictionary
     return typeMap["tos"].returnJsonDictionary()
 
 

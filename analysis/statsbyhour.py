@@ -11,10 +11,8 @@ class LineData(object):
         return map(tuple, map(lambda row: map(float, row), res))
 
     def get_data(self, queries, conn):
-
-        #DEPRECATED: getting rid of the sqlite database queries
-        #        conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
-
+        
+        #get the data. connect to the database and create the labels for the x and y axis
         cur = conn.cursor()
 
         colors = ['r-', 'b-', 'o-', 'y-', 'g-']
@@ -88,10 +86,6 @@ class LineData(object):
                 break
 
 
-#DEPRECATED: used for the sqlite prototype
-#select distinct m.id from msgs m, contacts c, tos t where t.msg = m.id and (c.id = m.fr or  (t.msg = m.id and c.id = t.cid)) and c.email like '%zhenya%';
-
-
 class RepliesByHour(object):
     #set default options so that email = "" --> might need to change this
     def get_sql(self, lat=True, reply=True, start=None, end = None, daysofweek = None, email="", currid=None):
@@ -101,7 +95,9 @@ class RepliesByHour(object):
         #URGENT: Need to also deal with multiple users and accounts
         WHERE.append("l.account = %d" % currid)
 
-        #WHERE.append("l.lat < 1")
+
+        #set the upperbound on the emails to consider for latency - if the response didn't come within 60 hrs then don't consider those responses
+        WHERE.append("l.lat < 60*60*60 AND l.lat > 0")
         if start:
            # WHERE.append("datetime(sentdate) > datetime('%s')" % start.strftime('%Y-%m-%d'))
             WHERE.append("origdate > '%s'::timestamp" % start.strftime('%Y-%m-%d'))
@@ -123,8 +119,9 @@ class RepliesByHour(object):
             WHERE.append("me.email like '%%%s%%'" % email)
 
         if lat:
-            SELECT = "avg(lat) * 60 as avglat, extract('hour' from replydate) as hour" 
             # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
+            # lat is in seconds so need to convert to hours
+            SELECT = "avg(lat)/60/60 as avglat, date_part('hour', origdate) as hour"
         else:
             #SELECT = "count(*), strftime('%H', sentdate) as hour"
             #, CAST(strftime('%M', sentdate)/60 as integer) as minute"
