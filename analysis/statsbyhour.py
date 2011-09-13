@@ -104,10 +104,10 @@ class RepliesByHour(object):
         #WHERE.append("l.lat < 1")
         if start:
            # WHERE.append("datetime(sentdate) > datetime('%s')" % start.strftime('%Y-%m-%d'))
-            WHERE.append("date_trunc('day', origdate) > DATE('%s')" % start.strftime('%Y-%m-%d'))
+            WHERE.append("origdate > '%s'::timestamp" % start.strftime('%Y-%m-%d'))
         if end:
             #WHERE.append("datetime(sentdate) < datetime('%s')" % end.strftime('%Y-%m-%d'))
-            WHERE.append("date_trunc('day', origdate) < DATE('%s')" % end.strftime('%Y-%m-%d'))
+            WHERE.append("origdate < '%s'::timestamp" % end.strftime('%Y-%m-%d'))
 #        if daysofweek:
             #WHERE.append("strftime('%%w', sentdate) in (%s)" % ','.join(map(lambda x: "'%s'" % x, daysofweek)))
         if reply is None:
@@ -123,12 +123,12 @@ class RepliesByHour(object):
             WHERE.append("me.email like '%%%s%%'" % email)
 
         if lat:
-            SELECT = "avg(lat) * 60 as avglat, strftime('%H', sentdate) as hour" 
+            SELECT = "avg(lat) * 60 as avglat, extract('hour' from replydate) as hour" 
             # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
         else:
             #SELECT = "count(*), strftime('%H', sentdate) as hour"
             #, CAST(strftime('%M', sentdate)/60 as integer) as minute"
-            SELECT = "count(*), date_part('hour',origdate) as hour"
+            SELECT = "count(*),  extract('hour' from origdate) as hour"
         WHERE = ' and '.join(WHERE)
         
         sql = "SELECT %s FROM latencies l, contacts me WHERE %s GROUP BY hour ORDER BY hour asc;" % (SELECT, WHERE)
