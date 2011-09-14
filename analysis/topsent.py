@@ -19,9 +19,11 @@ def get_top_sent(num, start, end, user, conn):
         #identify the user that we want to get the emails for
         num = num + 1
 
+        #get the user login ID
         c.execute("select accounts.id from accounts, auth_user as au where au.username = %s and au.id = accounts.user_id", (user,))
         aid = c.fetchone()[0]
 
+        #get the user contact ID
         c.execute("select id from contacts where email = %s", (user,))
         my_cid = c.fetchone()[0]
 
@@ -34,13 +36,15 @@ def get_top_sent(num, start, end, user, conn):
         WHERE.append("contacts.id = tos.contact_id")
         WHERE = ' and '.join(WHERE)
 
-        
+        #        sqlCmd = "select email, count(*) as c from contacts inner join (select contact_id, date, subj from (select id, date, subj from emails where fr = (select id from contacts where email = '%s' and owner_id = (select id from auth_user where email = '%s')) and %s) as msgids inner join tos on tos.email_id = msgids.id) as cids on contacts.id = cids.contact_id group by email order by c desc limit %d;" % (user, user, dateStr, num)
+
         sql = """select contacts.email, count(*) as c
         from contacts, emails, tos
         where %s
         group by contacts.email
         order by c desc
-        limit %s""" % (WHERE, num)
+        limit %s;""" % (WHERE, num)
+
         print sql
 
         c.execute(sql, (start, end, aid, my_cid))
