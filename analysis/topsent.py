@@ -8,16 +8,42 @@ from optparse import OptionParser
 import re
 
 def get_top_sent(num, start, end, user, conn):
+    """
+    num: the limit clause
+    start: start date
+    end: end date
+    user: complete username
+    """
     c = conn.cursor()
-    try:
+    if True:#try:
         #identify the user that we want to get the emails for
         num = num + 1
-        dateStr = " date >= '" + start + "' and date < '"+  end + "'"
+
+        c.execute("select accounts.id from accounts, auth_user as au where au.username = %s and au.id = accounts.user_id", (user,))
+        aid = c.fetchone()[0]
+
+        c.execute("select id from contacts where email = %s", (user,))
+        my_cid = c.fetchone()[0]
+
+
+        WHERE = []
+        WHERE.append("date >= %s and date < %s")
+        WHERE.append("emails.account = %s")
+        WHERE.append("emails.fr = %s")
+        WHERE.append("tos.email_id = emails.id")
+        WHERE.append("contacts.id = tos.contact_id")
+        WHERE = ' and '.join(WHERE)
+
         
-        #SQL command to group by email
-        sqlCmd = "select email, count(*) as c from contacts inner join (select contact_id, date, subj from (select id, date, subj from emails where fr = (select id from contacts where email = '%s' and owner_id = (select id from auth_user where email = '%s')) and %s) as msgids inner join tos on tos.email_id = msgids.id) as cids on contacts.id = cids.contact_id group by email order by c desc limit %d;" % (user, user, dateStr, num)
-        #execute the sql command 
-        c.execute(sqlCmd)
+        sql = """select contacts.email, count(*) as c
+        from contacts, emails, tos
+        where %s
+        group by contacts.email
+        order by c desc
+        limit %s""" % (WHERE, num)
+        print sql
+
+        c.execute(sql, (start, end, aid, my_cid))
         res = c.fetchall()
         
         emails = []
@@ -32,34 +58,16 @@ def get_top_sent(num, start, end, user, conn):
             emails.remove(user)
             number.remove(number[index])
 
-
         dictionary = dict()
         dictionary["labels"] = emails
         dictionary["y"] = number
         return dictionary
 
         
-    except Exception, e:
-        print e
-        print "error in connection"
+    # except Exception, e:
+    #     print e
+    #     print "error in connection"
 
-def get_emails_topsent(start, end, user, conn):
-    c = conn.cursor()
-    try:
-        dateStr = " date >= '" + start + "' and date < '"+  end + "'" 
-        sql = "select email, count(*) as c from contacts inner join (select contact_id, date, subj from (select id, date, subj from emails where fr = (select id from contacts where email = '%s' and owner_id = (select id from auth_user where email = '%s'))and %s) as msgids inner join tos on tos.email_id = msgids.id) as cids on contacts.id = cids.contact_id group by email order by c desc;" % (user, user, dateStr)
-
-        c.execute(sql)
-        res = c.fetchall()
-
-        emails = []
-        for item in res:
-            emails.append(item[0])
-
-        return emails
-    except Exception, e:
-        print e
-        print "exception in get emails topsent"
 
 if __name__ == "__main__":
     if len(sys.argv) == 5:

@@ -89,12 +89,16 @@ function getTopSendersList(id, start, end, jsonURL){
 
 function loadSpark(email, el, start, end) {
 			$.getJSON("/emailanalysis/getcount/json/", {start:start, end:end, granularity:"week", email:email}, function(data) {
+				console.log(data);
+				var maxcount = data[1];
+				var ys = data[0].y
 				var options = {
 					type : "line",
 					width: 250,
-					height: 25
+					height: 25,
+					chartRangeMax: maxcount,
 				}
-				el.sparkline(data.y, options);
+				el.sparkline(ys, options);
 			});		
 }
 

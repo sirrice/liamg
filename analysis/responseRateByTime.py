@@ -120,16 +120,18 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
    # conn = sqlite3.connect('../mail.db', detect_types=sqlite3.PARSE_DECLTYPES)
     c = conn.cursor()
 
-    try:
+    #try:
+    if True:
         #this is the new postgres query
-        c.execute("select id from contacts where email = '%s';" % emailAddy)
+        c.execute("select id from contacts where email ilike %s;", ('%%%s%%' % emailAddy,))
         myid = int(c.fetchone()[0])
 
         if SINGLE_REPLIER:
 
             #this is the new postgres query
             #it allows for users to filter by person for that specific user's contact list. it accounts for overlaps of contacts between users (i.e. it is possible for two users to have a similar contact)
-            c.execute("select id from contacts where email = '%s' and owner_id = (select id from auth_user where username = '%s');" % (replyAddy, emailAddy)) 
+            c.execute("select id from contacts where email ilike %s and owner_id = (select id from auth_user where username = %s);" ,
+                      ('%%%s%%' % replyAddy, emailAddy)) 
 
             replid = int(c.fetchone()[0])
 
@@ -174,9 +176,9 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
                     continue
                 msgIds.append(msgIndex)
                 trgt.addReplied(get_index(mode, item[0]), 1)
-    except Exception, e:
-        print "Caught exception"
-        print >> sys.stderr, e
+    # except Exception, e:
+    #     print "Caught exception"
+    #     print >> sys.stderr, e
 
     #return the json dictionary
     return typeMap["tos"].returnJsonDictionary()

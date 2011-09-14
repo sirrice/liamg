@@ -164,7 +164,6 @@ def login_view(request):
                     actidSQL = "select id from accounts where user_id = (select id from auth_user where username = '%s');" % user
                     c.execute(actidSQL)
                     actid = c.fetchone()[0]
-                    print actid
                     
                     #call refresh the latencies table
                     getdata.execute_latencies(actid, conn)
@@ -221,6 +220,7 @@ def logout_view(request):
 
 # get json data
 @login_required(login_url='/emailanalysis/login/')
+#@transaction.commit_manually
 def getjson(request, datatype):
     req = request.REQUEST
 
@@ -241,19 +241,20 @@ def getjson(request, datatype):
     curruser = User.objects.get(username=request.user)
 
     #ATTENTION: going to need to change the host once we deploy live
-    conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
+    #conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
 
     #connect to db to get the data
-    conn = psycopg2.connect(conn_string)
+    #conn = psycopg2.connect(conn_string)
+    conn = connection
 
     #DEPRECATED: for the sqlite prototype database
     #conn = sqlite3.connect(curruser.dbname, detect_types=sqlite3.PARSE_DECLTYPES)
 
 
     #get the curruser id so that you can pass it to the functions below
-    curridsql = "select id from accounts where user_id = (select id from auth_user where username = '%s')" % curruser
+    curridsql = "select id from accounts where user_id = %s"
     c = conn.cursor()
-    c.execute(curridsql)
+    c.execute(curridsql, (request.user.pk,))
     currid = c.fetchone()[0]
 
 
@@ -291,7 +292,6 @@ def getjson(request, datatype):
     elif datatype == "byhour":
         ebh = RepliesByHour()
         queries = []
-        print "EMAIL", email
 
         queries.append(('y', ebh.get_sql(lat=lat, reply=reply, start=start, end=end,
                                          daysofweek=daysofweek, email=email, currid = currid)))
@@ -311,19 +311,20 @@ def getjson(request, datatype):
                                         granularity=granularity, email=email)))
         ld = BDLineData()
 
-        data = ld.get_data(queries, conn, 0, granularity=granularity, start=start, end=end)
-
+        chartdata, maxval = ld.get_data(queries, conn, 0, granularity=granularity, start=start, end=end)
+        data = [chartdata, maxval]
 
     #use this to get the small graph next to the top ten
     elif datatype == "getcount":
         bd = ByDayNorm()
         queries = []
-
+        
         #get the queries for the line charts in the top ten
         queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end, granularity=granularity, email=email, currid=currid)))
         ld = BDLineData()
 
-        data = ld.get_data(queries, conn, 1, granularity=granularity, start=start, end=end)
+        chartdata, maxval = ld.get_data(queries, conn, 1, granularity=granularity, start=start, end=end)
+        data = [chartdata, maxval]
 
     else:
         return HttpResponse('json call not recognized')

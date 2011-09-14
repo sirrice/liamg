@@ -13,6 +13,7 @@ class BDLineData(object):
     def get_data(self, queries, conn, statid=0, granularity=None, start=None, end=None):
 
         cur = conn.cursor()
+        
         tmpdata = {}
         labels = []
         maxs = [0,0]
@@ -59,16 +60,13 @@ class BDLineData(object):
         data = {}
 
         for title, d in tmpdata.items():
-
             data[title] = [x in d and d[x][statid] or 0 for x in xs]
-            data[title][-1] = maxs[statid]
+            #data[title][-1] = maxs[statid]
         data['labels'] = xs        
 
         cur.close()
 
-        print "array lengths", start, end, map(len, data.values())
-
-        return data
+        return data, maxs[statid]
 
 
 class ByDayNorm(object):
@@ -86,7 +84,7 @@ class ByDayNorm(object):
                 WHERE.append("date < '%s'" % end.strftime('%Y-%m-%d'))
 
             if email:
-                WHERE.append("me.email like '%%%s%%' " % email)
+                WHERE.append("me.email like '%%%%%s%%%%' " % email)
 
             if granularity == 'week':
                 SELECT = "count(*), count(*), (m.date::date - extract(dow from m.date)::int) as d from emails as m join contacts as me on m.fr = me.id "

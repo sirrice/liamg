@@ -4,6 +4,7 @@ import random, smtplib, sys, time, urllib
 import sqlite3, email, math, imaplib
 from dateutil.parser import parse
 from datetime import timedelta
+from spam import get_spam_contacts
 import json
 import psycopg2
 import re
@@ -14,37 +15,45 @@ def get_top_senders(num, startdate, enddate, user, conn):
     execCode = ""
     try:
         num = num+1
-        
-        #might need a better way to do this -- if we have a business account there will be other email strings that we can't account for. However if we include
-        #everything then we will not be able to filter out the spam that people send to the user
-        #email_list = ["'%yahoo%'", "'%gmail%'", "'%aol%'", "'%hotmail%'", "'%live.com%'"]
-        #for now going to use the senders list to predict who is important -> a person wouldn't send an email unless they were on the senders list
-        
-        email_list = topsent.get_emails_topsent(startdate, enddate, user, conn) 
-        email_list = ["'%{0}%'".format(email) for email in email_list]
 
-        emailStr = "and (email like " + " or email like ".join(email_list) + ")"
-        dateStr = "and date >= '" + startdate + "' and date < '" + enddate + "'"
+        # get account id
+        c.execute("select accounts.id from accounts, auth_user as au where au.username = %s and au.id = accounts.user_id", (user,))
+        aid = c.fetchone()[0]
 
-        #IMPORTANT: create a user string so that you can distinguish between users - now will support multiple users on the same database
-        userStr = "and account = (select id from auth_user where username ='" + user + "')"
         
-        #if a sufficient number of emails in the list is returned, then use that list to filter out the most contacted people
+        spam_contacts = get_spam_contacts(aid, conn)
 
-        execCode = 'select email, count(*) as c from emails, contacts where emails.fr = contacts.id %s %s %s group by email order by c desc limit %d;' % (userStr, emailStr, dateStr, num)
+        WHERE = []
+        if len(spam_contacts):
+            WHERE.append("contacts.id not in (%s)" % ','.join(map(str, spam_contacts)))
+        WHERE.append("date >= %s and date < %s")
+        WHERE.append("account = %s")
+        WHERE.append("emails.fr = contacts.id")
+        WHERE.append("contacts.email != %s")
+        WHERE = ' and '.join(WHERE)
 
-        #if there isn't a sufficient number of emails 
-        
-        c.execute(execCode)
+
+
+        sql = """select email, count(*) as c
+        from emails, contacts
+        where %s
+        group by contacts.email
+        order by c desc
+        limit %s
+        """ % (WHERE, num)
+
+        c.execute(sql, (startdate, enddate, aid, user))
         res = c.fetchall()
+        print res
+
     except Exception, e:
         print 'theres an error. we are in the catch block.'
-        print email_list
         print execCode        
         print >> sys.stderr, e
         print e
 
         res = None
+
     total = 0
     emails = []
     numbers = []
