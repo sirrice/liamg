@@ -20,9 +20,9 @@ def get_top_senders(num, startdate, enddate, user, conn):
         c.execute("select accounts.id from accounts, auth_user as au where au.username = %s and au.id = accounts.user_id", (user,))
         aid = c.fetchone()[0]
 
-        
+        #URGENT: Something is wrong here. Not executing the code.
         spam_contacts = get_spam_contacts(aid, conn)
-
+        print spam_contacts
         WHERE = []
         if len(spam_contacts):
             WHERE.append("contacts.id not in (%s)" % ','.join(map(str, spam_contacts)))

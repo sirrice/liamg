@@ -18,8 +18,9 @@ def get_spam_contacts(account_id, conn):
               not exists (select * from ccs where ccs.contact_id = contacts.id) and
               not exists (select * from bccs where bccs.contact_id = contacts.id);"""
 
-        c.execute(sql, (aid,))
+        c.execute(sql, (account_id,))
         res = c.fetchall()
+#        return res
         return map(int, res)
     except Exception, e:
         print >>sys.stderr, e
