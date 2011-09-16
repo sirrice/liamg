@@ -29,3 +29,29 @@ def get_spam_contacts(account_id, conn):
         print >>sys.stderr, e
         return []
               
+def get_non_spam_contacts(start, end, user, conn):
+    c = conn.cursor()
+    try:
+        dateStr = " date >= '" + start + "' and date < '"+  end + "'" 
+        sql = """select email, count(*) as c from contacts inner join 
+                  (select contact_id, date, subj from 
+                     (select id, date, subj from emails where fr = 
+                        (select id from contacts where email = '%s' and owner_id = 
+                           (select id from auth_user where email = '%s'))
+                     and %s) 
+                  as msgids inner join tos on tos.email_id = msgids.id) 
+               as cids on contacts.id = cids.contact_id 
+               group by email 
+               order by c desc;""" % (user, user, dateStr)
+
+        c.execute(sql)
+        res = c.fetchall()
+        
+        emails = []
+        for item in res:
+            emails.append(item[0])
+
+        return emails
+    except Exception, e:
+        print e
+        print "exception in get emails topsent"
