@@ -16,9 +16,9 @@ def get_top_senders(num, startdate, enddate, user, conn):
     try:
         num = num+1
 
-        # get account id
-        c.execute("select accounts.id from accounts, auth_user as au where au.username = %s and au.id = accounts.user_id", (user,))
-        aid = int(c.fetchone()[0])
+        # get account id URGENT: not used in the current sql query
+        #c.execute("select accounts.id from accounts, auth_user as au where au.username = %s and au.id = accounts.user_id", (user,))
+        #aid = int(c.fetchone()[0])
 
         #URGENT: Something is wrong here. Not executing the code. spam_contacts var not getting filled
 
