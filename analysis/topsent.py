@@ -47,7 +47,14 @@ def get_top_sent(num, start, end, user, conn):
 
         #replacing current SQL query for now
         dateStr = "date >= '%s' and date < '%s'" % (start, end)
-        sql = "select email, count(*) as c from contacts inner join (select contact_id, date, subj from (select id, date, subj from emails where fr = (select id from contacts where email = '%s' and owner_id = (select id from auth_user where email = '%s')) and %s) as msgids inner join tos on tos.email_id = msgids.id) as cids on contacts.id = cids.contact_id group by email order by c desc limit %d;" % (user, user, dateStr, num)
+        sql = """select email, count(*) as c from contacts inner join 
+                   (select contact_id, date, subj from 
+                      (select id, date, subj from emails where fr = 
+                         (select id from contacts where email = '%s' and owner_id = 
+                             (select id from auth_user where email = '%s')) and %s) 
+                   as msgids 
+                   inner join tos on tos.email_id = msgids.id) as cids 
+                 on contacts.id = cids.contact_id group by email order by c desc limit %d;""" % (user, user, dateStr, num)
         
         print sql
 

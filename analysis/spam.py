@@ -11,15 +11,18 @@ import re
 def get_spam_contacts(account_id, conn):
     try:
         c = conn.cursor()
+#        sql = """select contacts.id
+#        from contacts
+#        where owner_id = %s and
+#              not exists (select * from tos where tos.contact_id = contacts.id) and
+#              not exists (select * from ccs where ccs.contact_id = contacts.id) and
+#              not exists (select * from bccs where bccs.contact_id = contacts.id);"""
         sql = """select contacts.id
-        from contacts
-        where owner_id = %s and
-              not exists (select * from tos where tos.contact_id = contacts.id) and
-              not exists (select * from ccs where ccs.contact_id = contacts.id) and
-              not exists (select * from bccs where bccs.contact_id = contacts.id);"""
-
+                 from contacts
+                 where owner_id = %s and contacts.name is not null"""
         c.execute(sql, (account_id,))
         res = c.fetchall()
+
 #        return res
         return map(int, res)
     except Exception, e:
