@@ -76,7 +76,6 @@ def get_top_senders(num, startdate, enddate, user, conn):
 
 #        c.execute(sql, (startdate, enddate, aid, user))
         res = c.fetchall()
-        print res
 
     except Exception, e:
         print 'theres an error. we are in the catch block.'
