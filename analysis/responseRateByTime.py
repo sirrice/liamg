@@ -7,6 +7,23 @@ import json
 
 import re
 
+###########################################################
+## KNOWN ISSUES:
+## (1) If someone responds to the same email twice, then we count it as two
+##     replies.  This is wrong, it should be counted once.  We currently cap
+##     the aggregate % as 100% but this is not the ideal solution - there needs
+##     to be a change made to the SQL query.
+## (2) I don't like the e-mail ilike thing, because how often do people have
+##     e-mail addresses that are similar to each other?  E.g. I (ravi) have
+##     ravdawg@gmail.com and ravipatel@alum.mit.edu, which i don't think would
+##     show up as being similar to each other.
+##     The solution for this is to have an option on the front end that allows
+##     a user to select multiple e-mail addresses for a particular individual.
+##     Then, this script should then somehow map all those e-mails appropriately
+##     to get the desired answer.
+###########################################################
+
+
 #modes = ["day", "hour"]
 
 #mymode = sys.argv[1]
@@ -24,7 +41,29 @@ import re
 
 #startDT = parse(startD)
 #endDT = parse(endD)
-
+#########################################################
+# HELPER FUNCTIONS
+# 
+# make_human_readble(mode, ind) - converts the index of the vector to a 
+#                                 readable string, depending on the mode
+# get_index(mode, thetime)      - gets the appropriate list index given the
+#                                 email timestamp
+# 
+# HELPER CLASSES
+# 
+# Datum                         - is essentially a pair of integers. Stores #
+#                                 of e-mails sent and replied to.
+# ModeDatum                     - is a map of an 'index' to a Datum object
+#                                 the 'index' is either the hour of the day 
+#                                 or the day of the week.
+#                                 helper functions exist to edit the counts in
+#                                 the Datum objects within the map
+#                                 returnJsonDictionary exists to spit out the
+#                                 answer in Json format
+#                                 
+# For info on get_response_rate, scroll down to the function for the readme
+#
+##########################################################
 def make_human_readable(mode, ind):
     if mode == "day":
         dayofweekMap = dict()
@@ -107,9 +146,54 @@ class ModeDatum:
             ret["y"].append(vals.getResponseRate())
             
         return ret
-
+#############################################################
+##
+## get_response_rate is the main function.  It takes the following inputs:
+## 
+## mode - either "day" or "hour", will bucket emails either by day of week or
+##        by hour
+## 
+## start - start date in format YYYY-MM-DD
+## end   - end date in format YYYY-MM-DD
+## 
+## emailAddy - This is the e-mail address of the SENDER.  So, if jsmith@gmail 
+##             was logged into inboxdr, he might want to see how often people
+##             respond to his e-mails.  In this case, emailAddy should be set
+##             to jsmith@gmail.  However, if he wants to see how often he
+##             responds to emails from jdoe@aol then emailAddy should be set
+##             to jdoe@aol and replyAddy (next argument, see below) should be
+##             set to jsmith@gmail.
+##             
+## replyAddy - This is the e-mail address of the person replying to your emails.
+##             So if kbryant@hotmail wants to see how often diesel@yahoo 
+##             responds to his emails, emailAddy = kbryant@hotmail and 
+##             replyAddy is set to diesel@yahoo.  If kbryant@hotmail wants to
+##             see how often everyone responds to him, then replyAddy MUST
+##             be set to the string ALL
+## conn      - Database connection
+##
+##
+## Possible user inputs and what they do:
+## [...] day 2011-01-01 2012-01-01 ravdawg@gmail.com farm.cp@gmail.com 
+##           -->  Selects all e-mails bucketed by day of week from beginning of 2011.  Selects e-mails that
+##                ravdawg@gmail.com sent to farm.cp@gmail.com
+## [...] day 2011-01-01 2012-01-01 ravdawg@gmail.com ALL
+##           -->  Selects all e-mails bucketed by day of week from beginning of 2011.  Selects all e-mails that 
+##                I sent and calculates how often I was responded to.  Note that if I send one e-mail to A and B
+##                that will count as two separate sent e-mails, so that if only A responds, my rate is 50%.
+## [...] day 2011-01-01 2012-01-01 farm.cp@gmail.com ravdawg@gmail.com
+##           -->  Selects all e-mails bucketed by day of week from beginning of 2011.  Selects all e-mails that
+##                farm.cp@gmail.com sent to ravdawg@gmail.com (note that ravdawg@gmail.com is the active user
+##                on inboxdr).
+## [...] day 2011-01-01 2012-01-01 farm.cp@gmail.com ALL
+##           -->  Do NOT do this.  This will look at all e-mails that farm.cp@gmail.com sent to you, but if 
+##                he also CC'ed other people on the same e-mails, then it will count those other CC'ed users
+##                in the denominator.  We do not want that shit!  NEVER do this.  If you want to see how often
+##                you responded to farm.cp@gmail.com, use the 3rd example.
+##
+##############################################################
 def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
-    if replyAddy == "":
+    if replyAddy == "ALL":
         SINGLE_REPLIER = False
     else:
         SINGLE_REPLIER = True
