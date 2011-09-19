@@ -22,8 +22,9 @@ class LineData(object):
 
         i = 0
         for title, sql in queries:
-
+            print sql
             cur.execute(sql)
+
             res = cur.fetchall()
             res = self.proc_rows(res)
 
@@ -90,11 +91,9 @@ class RepliesByHour(object):
     #set default options so that email = "" --> might need to change this
     def get_sql(self, lat=True, reply=True, start=None, end = None, daysofweek = None, email="", currid=None):
         WHERE = []
-
         
         #URGENT: Need to also deal with multiple users and accounts
         WHERE.append("l.account = %d" % currid)
-
 
         #set the upperbound on the emails to consider for latency - if the response didn't come within 60 hrs then don't consider those responses
         WHERE.append("l.lat < 60*60*60 AND l.lat > 0")
@@ -116,7 +115,7 @@ class RepliesByHour(object):
             #WHERE.append("me.id = l.senduid")
             WHERE.append("me.id = l.sender")
         if email:
-            WHERE.append("me.email like '%%%s%%'" % email)
+            WHERE.append("me.email like '%s'" % email)
 
         if lat:
             # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
@@ -129,10 +128,14 @@ class RepliesByHour(object):
         WHERE = ' and '.join(WHERE)
         
         sql = "SELECT %s FROM latencies l, contacts me WHERE %s GROUP BY hour ORDER BY hour asc;" % (SELECT, WHERE)
-        print sql
+
         return sql
 
 
+
+###############
+#NOT SURE WEHRE THIS CLASS IS USED. DO WE NEED TO DELETE THIS?
+###############
 class EveryoneByHour(object):
     def get_sql(self, lat=True, start=None, end = None, daysofweek = None):
         WHERE = []

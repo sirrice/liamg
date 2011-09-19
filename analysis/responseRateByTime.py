@@ -214,8 +214,12 @@ def get_response_rate(mode, start, end, emailAddy, replyAddy, conn):
 
             #this is the new postgres query
             #it allows for users to filter by person for that specific user's contact list. it accounts for overlaps of contacts between users (i.e. it is possible for two users to have a similar contact)
-            c.execute("select id from contacts where email ilike %s and owner_id = (select id from auth_user where username = %s);" ,
-                      ('%%%s%%' % replyAddy, emailAddy)) 
+
+            idsql = """select id from contacts where email like '%s' 
+                       and owner_id = 
+                         (select id from auth_user where username = '%s')""" % (replyAddy, emailAddy)
+
+            c.execute(idsql)
 
             replid = int(c.fetchone()[0])
 
