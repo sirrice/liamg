@@ -97,33 +97,29 @@ class RepliesByHour(object):
 
         #set the upperbound on the emails to consider for latency - if the response didn't come within 60 hrs then don't consider those responses
         WHERE.append("l.lat < 60*60*60 AND l.lat > 0")
+
         if start:
-           # WHERE.append("datetime(sentdate) > datetime('%s')" % start.strftime('%Y-%m-%d'))
             WHERE.append("origdate > '%s'::timestamp" % start.strftime('%Y-%m-%d'))
+
         if end:
-            #WHERE.append("datetime(sentdate) < datetime('%s')" % end.strftime('%Y-%m-%d'))
             WHERE.append("origdate < '%s'::timestamp" % end.strftime('%Y-%m-%d'))
-#        if daysofweek:
-            #WHERE.append("strftime('%%w', sentdate) in (%s)" % ','.join(map(lambda x: "'%s'" % x, daysofweek)))
+
         if reply is None:
-            #WHERE.append("(me.id = l.replyuid or me.id = l.senduid)")
             WHERE.append("(me.id = l.replier or me.id = l.sender)")
+
         elif reply:
-            #WHERE.append("me.id = l.replyuid")
             WHERE.append("me.id = l.replier")
+
         else:
-            #WHERE.append("me.id = l.senduid")
             WHERE.append("me.id = l.sender")
+
         if email:
             WHERE.append("me.email like '%s'" % email)
 
         if lat:
-            # , CAST(strftime('%M', sentdate)/60 as integer) as minute"
-            # lat is in seconds so need to convert to hours
             SELECT = "avg(lat)/60/60 as avglat, date_part('hour', origdate) as hour"
+
         else:
-            #SELECT = "count(*), strftime('%H', sentdate) as hour"
-            #, CAST(strftime('%M', sentdate)/60 as integer) as minute"
             SELECT = "count(*),  extract('hour' from origdate) as hour"
         WHERE = ' and '.join(WHERE)
         
@@ -136,27 +132,27 @@ class RepliesByHour(object):
 ###############
 #NOT SURE WEHRE THIS CLASS IS USED. DO WE NEED TO DELETE THIS?
 ###############
-class EveryoneByHour(object):
-    def get_sql(self, lat=True, start=None, end = None, daysofweek = None):
-        WHERE = []
-        WHERE.append("l.lat < 1")
-        if start:
-            WHERE.append("datetime(sentdate) > datetime('%s')" % start.strftime('%Y-%m-%d'))
-        if end:
-            WHERE.append("datetime(sentdate) < datetime('%s')" % end.strftime('%Y-%m-%d'))
-        if daysofweek:
-            WHERE.append("strftime('%%w', sentdate) in (%s)" % (','.join(map(lambda x: "'%s'" % x, daysofweek))))
-            print WHERE[-1]
+#class EveryoneByHour(object):
+#    def get_sql(self, lat=True, start=None, end = None, daysofweek = None):
+#        WHERE = []
+#        WHERE.append("l.lat < 1")
+#        if start:
+#            WHERE.append("datetime(sentdate) > datetime('%s')" % start.strftime('%Y-%m-%d'))
+#        if end:
+#            WHERE.append("datetime(sentdate) < datetime('%s')" % end.strftime('%Y-%m-%d'))
+#        if daysofweek:
+#            WHERE.append("strftime('%%w', sentdate) in (%s)" % (','.join(map(lambda x: "'%s'" % x, daysofweek))))
+#            print WHERE[-1]
 
-        if lat:
-            SELECT = "avg(lat) as avglat, strftime('%H', sentdate) as hour"#, CAST(strftime('%M', sentdate)/60 as integer) as minute"
-        else:
-            SELECT = "count(*), strftime('%H', sentdate) as hour"#, CAST(strftime('%M', sentdate)/60 as integer) as minute"
+#        if lat:
+#            SELECT = "avg(lat) as avglat, strftime('%H', sentdate) as hour"#, CAST(strftime('%M', sentdate)/60 as integer) as minute"
+#        else:
+#            SELECT = "count(*), strftime('%H', sentdate) as hour"#, CAST(strftime('%M', sentdate)/60 as integer) as minute"
 
-        WHERE = ' and '.join(WHERE)
+#        WHERE = ' and '.join(WHERE)
 
-        sql = "SELECT %s FROM latency l WHERE %s GROUP BY hour ORDER BY hour asc;" % (SELECT, WHERE)
-        return sql
+#        sql = "SELECT %s FROM latency l WHERE %s GROUP BY hour ORDER BY hour asc;" % (SELECT, WHERE)
+#        return sql
 
 
 
