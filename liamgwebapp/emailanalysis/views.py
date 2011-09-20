@@ -60,7 +60,8 @@ class ContactForm(forms.Form):
     cc_myself = forms.BooleanField(required=False)
 
 class LoginForm(forms.Form):
-    username = forms.CharField(widget=forms.TextInput(attrs={'size':'25','style':'font-size:18px'}),max_length=100)
+#    username = forms.CharField(widget=forms.TextInput(attrs={'size':'25','style':'font-size:18px'}),max_length=100)
+    username = forms.EmailField(widget=forms.TextInput(attrs={'size':'25','style':'font-size:18px'}), max_length=100)
     password = forms.CharField(widget=forms.PasswordInput(render_value=False, attrs={'size':'25','style':'font-size:18px'}),max_length=100)
     defaultdb = forms.NullBooleanField()
 
