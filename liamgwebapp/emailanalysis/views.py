@@ -102,9 +102,14 @@ def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
 
+        #check if the form is valid
         if form.is_valid():
             defaultdb = form.cleaned_data['defaultdb']
             if defaultdb:
+                #################
+                #We should get rid of this and replace it with something else
+                #I don't think we really need this anymore?
+                #################
                 # log in as default
                 username = "default@default.com"
                 user = authenticate(username=username,password='default')
