@@ -417,7 +417,7 @@ def getjson(request, datatype):
 def sendmail(request):
     form = ContactForm()
     c={}
-    c.update(csfr(request))
+    c.update(csrf(request))
     return render_to_response('emailanalysis/sendmail.html', {'form':form,}, context_instance = RequestContext(request))
 
 @login_required
