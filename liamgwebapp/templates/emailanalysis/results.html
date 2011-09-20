@@ -39,7 +39,7 @@ function filterByEmail(){
       opts['start'] = startdate;
       opts['end'] = enddate;
       opts['email'] = addresses;
-      
+
       var url_count_string, url_time_string, url_rate_string;
 
       if(isReceivedMail)
@@ -48,6 +48,7 @@ function filterByEmail(){
          url_count_string = "{{url_count}}";
          url_time_string = "{{url_time}}";
          url_rate_string = "{{url_rate}}";
+
       }
       else 
       {
@@ -56,6 +57,7 @@ function filterByEmail(){
 
       $.getJSON(url_count_string, opts, function(data){
           drawChart(data, chartsData['hourChart']);
+         
       });	  
       opts['lat'] = 'True';
       $.getJSON(url_time_string, opts, function(data){
