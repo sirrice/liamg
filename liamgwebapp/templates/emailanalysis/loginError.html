@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>inbox.dr | login</title>
+<link rel="shortcut icon" href="../favicon.png" /> 
+<link rel="stylesheet" type="text/css" href="" />
+<style type="text/css">
+@font-face {
+    font-family: 'nevisBold';
+    src: url('/media/font/nevis-webfont.eot');
+    src: url('/media/font/nevis-webfont.eot?#iefix') format('embedded-opentype'),
+         url('/media/font/nevis-webfont.woff') format('woff'),
+         url('/media/font/nevis-webfont.ttf') format('truetype'),
+         url('/media/font/nevis-webfont.svg#nevisBold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+	}
+body {
+	width:900px;
+	margin-left:auto;
+	margin-right:auto;
+	background:url('/media/images/bg.jpg') repeat-x;
+	font-family:Verdana;
+	font-size:12px;
+	text-align:center;
+	}
+.box {
+	margin: 50px auto 0 auto;
+	padding:30px 0 10px 20px;
+	width:550px;
+	background:white;
+	background-color:rgba(255,255,255,0.5);	
+	border:2px #B5B7B9 solid;
+	border-radius:15px;
+	-moz-border-radius:15px;
+	-webkit-box-shadow: 5px 5px 1px #B5B7B9;
+	box-shadow: 5px 5px 1px #B5B7B9;
+	}
+#logo {
+	/*margin-bottom:20px;*/
+}
+#login {
+	width:600px;
+	text-align:center;
+	}
+.field {
+	width:450px;
+	text-align:right;
+	font-family:nevisBold;
+	font-size:18px;
+}
+.field input {
+	border: 2px #B5B7B9 solid;
+	border-radius:5px;
+	-moz-border-radius:5px;
+}
+#username:hover {
+	border: 2px #555555 solid;
+	border-radius:5px;
+	-moz-border-radius:5px;
+}
+#password:hover {
+	border: 2px #555555 solid;
+	border-radius:5px;
+	-moz-border-radius:5px;
+}
+.button {
+	width:166px;
+	height:43px;
+	border:none;
+	background:url('/media/images/cta.jpg') no-repeat;
+}
+.button:active {
+	background:url('/media/images/cta_active.jpg') no-repeat;
+}
+#clickme {
+	margin-left:auto;
+	margin-right:auto;
+	width:166px;
+}
+p.error {
+	width:500px;
+	text-align:center;
+	background-color:#FFCFCF;
+	font:16px nevisBold;
+	color:#FF3600;
+	margin:0 15px 10px 15px;
+	padding:0 0 3px 0;
+}
+</style>
+</head>
+
+<body>
+<div class="box">
+	<div id="logo">
+		<img src="/media/images/logo-sm.png" />
+	</div>
+	
+	<div id="login">
+	<p class="error">The username or password provided seems to be invalid.<br />Please try logging in again.</p>
+	<form action="/emailanalysis/login/submit/" method="post">{% csrf_token %}
+		<div class="field">
+			Gmail Username: {{form.username}}<br />
+			Gmail Password: {{form.password}}<br />
+			<!--Use Default?: {{form.defaultdb}}<br />-->
+		</div>
+		<p>
+		<div id="clickme">
+			<input type="submit" class="button" value=""/>
+		</div></p>
+	</form>
+	</div>
+</div>
+
+</body>
+</html>
