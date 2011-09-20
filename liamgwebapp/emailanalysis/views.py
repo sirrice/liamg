@@ -38,6 +38,7 @@ from timeline import *
 from contacts import Contacts
 import getdata
 import psycopg2
+import sent_tab
 
 #getdata.setup_db(conn)
 
@@ -87,7 +88,7 @@ def results(request):
 
 @login_required(login_url='/emailanalysis/login/')
 def results_sent(request):
-    dictionary = {"isRecMail":"false", "topListURL":"/emailanalysis/topsent/json/"}
+    dictionary = {"isRecMail":"false", "topListURL":"/emailanalysis/topsent/json/", "url_count":"/emailanalysis/countsent/json/"}
     dictionary["top_email_title"] = "Top Email Contacts"
     dictionary["top_email_desc"] = "Contacts who you most frequently email."
     dictionary["email_count"] = "Sent Emails"
@@ -339,8 +340,17 @@ def getjson(request, datatype):
     
     #TODO: use this to get the count of emails that a person sends to others
     elif datatype == "countsent":
-        print 'hello' #enter code here
-    
+        queries = []
+        user = curruser.username
+        
+        req = request.REQUEST
+        start = req.get('start', None)
+        end = req.get('end', None)
+        to_email = req.get('email', None)
+        queries.append(('y',sent_tab.get_count_sent_sql(start, end, user, to_email, conn)))
+        ld = LineData()
+        data = ld.get_data(queries, conn)
+
     #TODO: use this to get the delay between when user responds to emails that others send to them
     elif datatype == "delay_sent":
         print 'hello'#enter code here

@@ -53,11 +53,13 @@ function filterByEmail(){
       else 
       {
          //add the other urls here to get the sent message statistics
+         url_count_string = "{{url_count}}";
+
       }
 
       $.getJSON(url_count_string, opts, function(data){
           drawChart(data, chartsData['hourChart']);
-         
+         console.log(url_count_string);
       });	  
       opts['lat'] = 'True';
       $.getJSON(url_time_string, opts, function(data){

@@ -124,7 +124,7 @@ class RepliesByHour(object):
         WHERE = ' and '.join(WHERE)
         
         sql = "SELECT %s FROM latencies l, contacts me WHERE %s GROUP BY hour ORDER BY hour asc;" % (SELECT, WHERE)
-
+        
         return sql
 
 
