@@ -191,36 +191,39 @@ def login_view(request):
             'form': form,
             },context_instance=RequestContext(request))
 
+###################
+#Is this method necessary?
+#####################
 # create new user
-def create_user(request):
+#def create_user(request):
 
-    if request.method == 'POST':
-        form = CreateUserForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
+#    if request.method == 'POST':
+#        form = CreateUserForm(request.POST)
+#        if form.is_valid():
+#            username = form.cleaned_data['username']
+#            email = form.cleaned_data['email']
+#            password = form.cleaned_data['password']
 
             # create user
-            user = User.objects.create_user(username,email,password)
+#            user = User.objects.create_user(username,email,password)
 
-            return HttpResponse('user created')
-        else:
-            return HttpResponse('form invalid')
-    else:
-        form = CreateUserForm()
-        c = {}
-        c.update(csrf(request))
+#            return HttpResponse('user created')
+#        else:
+#            return HttpResponse('form invalid')
+#    else:
+#        form = CreateUserForm()
+#        c = {}
+#        c.update(csrf(request))
 
-        return render_to_response('emailanalysis/newuser.html', {
-            'form': form,
-            },context_instance=RequestContext(request))
-    
+#        return render_to_response('emailanalysis/newuser.html', {
+#            'form': form,
+#            },context_instance=RequestContext(request))
+################    
 
 # log out user
 def logout_view(request):
     logout(request)
-#    return HttpResponse('user logged out')
+
     form = LoginForm(initial={'username':'', 'password':'', 'defaultdb':False})
     c = {}
     c.update(csrf(request))
@@ -371,7 +374,7 @@ def getjson(request, datatype):
     return HttpResponse(json.dumps(data), mimetype="application/json")
 
 
-#UPDATE: THIS ISN'T BEING USED...why do we have all these extraneous methods??
+#UPDATE: Not all of this is being used. why do we have this method?
 #@login_required
 #def sendmail(request):
 
@@ -408,7 +411,14 @@ def getjson(request, datatype):
 #        return render_to_response('emailanalysis/sendmail.html', {
 #            'form': form,
 #            },context_instance=RequestContext(request))
+#############
 
+@login_required
+def sendmail(request):
+    form = ContactForm()
+    c={}
+    c.update(csfr(request))
+    return render_to_response('emailanalysis/sendmail.html', {'form':form,}, context_instance = RequestContext(request))
 
 @login_required
 def refresh_account(request):

@@ -9,24 +9,24 @@ urlpatterns = patterns('emailanalysis.views',
     (r'^$', 'index'),
     (r'^(?P<datatype>[\w]+)/json/$', 'getjson'),
     (r'^sendmail/$', 'sendmail'),
-#    (r'^sendmail/send/$', 'sendmail'),
-#    (r'^test/$', direct_to_template, {'template': 'emailanalysis/testautocomplete.html'}),
-#    (r'^testdate/$', direct_to_template, {'template': 'emailanalysis/testdateslider.html'}),
-#   (r'^dash/$', direct_to_template, {'template': 'emailanalysis/dashboard.html'}),                       
-#   (r'^home/$', 'index'),
-
-                       
     (r'^login/submit/$', 'login_view'),
     (r'^login/$', 'login_view'),
     (r'^logout/$', 'logout_view'),
-#   (r'^createuser/$', 'create_user'),
-#   (r'^createuser/submit/$', 'create_user'),
     (r'^results/$', 'results'),
     (r'^results_sent/$','results_sent'),
                        (r'^refresh/status/(\d+)/$', 'refresh_check'),
                        (r'^refresh/$', 'refresh_account'),
                        (r'^refresh/wait/(\d+)/$', 'refresh_wait'),
 #    (r'^pie/$', 'pie'),                                              
+#    (r'^sendmail/send/$', 'sendmail'),
+#    (r'^test/$', direct_to_template, {'template': 'emailanalysis/testautocomplete.html'}),
+#    (r'^testdate/$', direct_to_template, {'template': 'emailanalysis/testdateslider.html'}),
+#   (r'^dash/$', direct_to_template, {'template': 'emailanalysis/dashboard.html'}),                       
+#   (r'^home/$', 'index'),
+#   (r'^createuser/$', 'create_user'),
+#   (r'^createuser/submit/$', 'create_user'),
+
+                       
 
     # Examples:
     # url(r'^$', 'liamgwebapp.views.home', name='home'),
