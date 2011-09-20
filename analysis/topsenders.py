@@ -69,7 +69,7 @@ def get_top_senders(num, startdate, enddate, user, conn):
                  group by email 
                  order by c desc 
                  limit %d;""" % (userStr, emailStr, dateStr, num)
-        
+        print sql
         
         #Execute the sql statement
         c.execute(sql)

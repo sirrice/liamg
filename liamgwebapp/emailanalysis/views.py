@@ -38,6 +38,7 @@ from timeline import *
 from contacts import Contacts
 import getdata
 import psycopg2
+import sent_tab
 
 #getdata.setup_db(conn)
 
@@ -87,7 +88,7 @@ def results(request):
 
 @login_required(login_url='/emailanalysis/login/')
 def results_sent(request):
-    dictionary = {"isRecMail":"false", "topListURL":"/emailanalysis/topsent/json/"}
+    dictionary = {"isRecMail":"false", "topListURL":"/emailanalysis/topsent/json/", "url_count":"/emailanalysis/countsent/json/"}
     dictionary["top_email_title"] = "Top Email Contacts"
     dictionary["top_email_desc"] = "Contacts who you most frequently email."
     dictionary["email_count"] = "Sent Emails"
@@ -153,8 +154,9 @@ def login_view(request):
                     account.save()
 
                     #IMPORTANT: create the connection string and connect to the database
-                    conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
-                    conn = psycopg2.connect(conn_string)
+                    conn = connection
+                    #conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
+                    #conn = psycopg2.connect(conn_string)
                     getdata.download_headers(account, password, conn, gettext=False)
                     
                     #make a connection and run the latencies script
@@ -247,9 +249,6 @@ def getjson(request, datatype):
     #conn = psycopg2.connect(conn_string)
     conn = connection
 
-    #DEPRECATED: for the sqlite prototype database
-    #conn = sqlite3.connect(curruser.dbname, detect_types=sqlite3.PARSE_DECLTYPES)
-
 
     #get the curruser id so that you can pass it to the functions below
     curridsql = "select id from accounts where user_id = %s"
@@ -257,7 +256,9 @@ def getjson(request, datatype):
     c.execute(curridsql, (request.user.pk,))
     currid = c.fetchone()[0]
 
-
+###################
+#This portion of the code will be to retrieve the graph data for the rec'd tab
+###################
 
     #get the top people who respond to the user
     if datatype == 'topsenders':
@@ -267,7 +268,64 @@ def getjson(request, datatype):
         top = 10       
         email = curruser.username
         data = topsenders.get_top_senders(top, start, end, email, conn)
+
+    #use this to get the mini graph next to the top ten that displays count
+    elif datatype == "getcount":
+        #called from timeline.py
+        bd = ByDayNorm()
+        queries = []
+        
+        #get the queries for the line charts in the top ten
+        queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end, granularity=granularity, email=email, currid=currid)))
+        ld = BDLineData()
+        chartdata, maxval = ld.get_data(queries, conn, 1, granularity=granularity, start=start, end=end)
+        data = [chartdata, maxval]
+
+    #get the rate for a specifc user (filtered) and for the general population
+    elif datatype == "getrate":
+        req = request.REQUEST
+        start = req.get('start', None)
+        end = req.get('end', None)
+        emailAddy = curruser.username
+        replyAddy = req.get('email', 'ALL')
+        #if there is an empty email string, then set the replyAddy to ALL - this
+        #will filter for the entire database
+        if replyAddy == "":
+            replyAddy = 'ALL'
+        mode = req.get('mode', None)
+        data = responseRateByTime.get_response_rate(mode, start, end, emailAddy, replyAddy, conn)
+
+    #use this to get the count in the first graph for the rec'd tab
+    elif datatype == "byhour":
+        #called from statsbyhour.py
+        ebh = RepliesByHour()
+        queries = []
+        queries.append(('y', ebh.get_sql(lat=lat, reply=reply, start=start, end=end,
+                                         daysofweek=daysofweek, email=email, currid = currid)))
+        ld = LineData()
+        data = ld.get_data(queries, conn)
     
+    #Update: WHAT DOES THIS DO?
+#    elif datatype == "contacts":
+#        contacts = Contacts()
+#        data = contacts.get_data(conn)
+
+    #Update: NOT SURE WHAT THIS DOES?
+#    elif datatype == "getlatency":
+#        bd = ByDay()
+#        queries = []
+#        queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
+#                                        granularity=granularity, email=email)))
+#        ld = BDLineData()
+
+#        chartdata, maxval = ld.get_data(queries, conn, 0, granularity=granularity, start=start, end=end)
+#        data = [chartdata, maxval]
+
+ 
+########################
+#This portion of the code will be for the sent tab
+########################
+
     #get the sent top ten people who the user contacts
     elif datatype == "topsent":
         req = request.REQUEST
@@ -277,97 +335,73 @@ def getjson(request, datatype):
         email = curruser.username
         data = topsent.get_top_sent(top, start, end, email, conn)
 
-    #get the rate for a specifc user (filtered) and for the general population
-    elif datatype == "getrate":
+   #TODO: use this to get the mini charts for the sent tab
+    elif datatype == "countmini":
+        print 'hello' #enter code here
+    
+    #TODO: use this to get the count of emails that a person sends to others
+    elif datatype == "countsent":
+        queries = []
+        user = curruser.username
+        
         req = request.REQUEST
         start = req.get('start', None)
         end = req.get('end', None)
-        emailAddy = curruser.username
-        replyAddy = req.get('email', None)
-        mode = req.get('mode', None)
-        data = responseRateByTime.get_response_rate(mode, start, end, emailAddy, replyAddy, conn)
-
-
-    #use this to get the count in the first graph and maybe the second graph?
-    elif datatype == "byhour":
-        ebh = RepliesByHour()
-        queries = []
-
-        queries.append(('y', ebh.get_sql(lat=lat, reply=reply, start=start, end=end,
-                                         daysofweek=daysofweek, email=email, currid = currid)))
+        to_email = req.get('email', None)
+        queries.append(('y',sent_tab.get_count_sent_sql(start, end, user, to_email, conn)))
         ld = LineData()
         data = ld.get_data(queries, conn)
 
-    #not sure what this does yet?
-    elif datatype == "contacts":
-        contacts = Contacts()
-        data = contacts.get_data(conn)
-
-    #get the second graph that shows the response time
-    elif datatype == "getlatency":
-        bd = ByDay()
-        queries = []
-        queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end,
-                                        granularity=granularity, email=email)))
-        ld = BDLineData()
-
-        chartdata, maxval = ld.get_data(queries, conn, 0, granularity=granularity, start=start, end=end)
-        data = [chartdata, maxval]
-
-    #use this to get the small graph next to the top ten
-    elif datatype == "getcount":
-        bd = ByDayNorm()
-        queries = []
-        
-        #get the queries for the line charts in the top ten
-        queries.append(('y', bd.get_sql(lat=lat, reply=reply, start=start, end=end, granularity=granularity, email=email, currid=currid)))
-        ld = BDLineData()
-
-        chartdata, maxval = ld.get_data(queries, conn, 1, granularity=granularity, start=start, end=end)
-        data = [chartdata, maxval]
-
+    #TODO: use this to get the delay between when user responds to emails that others send to them
+    elif datatype == "delay_sent":
+        print 'hello'#enter code here
+    
+    elif datatype == "rate_sent":
+        print 'rate sent' #enter code here
     else:
         return HttpResponse('json call not recognized')
 
     # return data as json
     return HttpResponse(json.dumps(data), mimetype="application/json")
 
-@login_required
-def sendmail(request):
 
-    if request.method == 'POST':
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            subject = form.cleaned_data['subject']
-            message = form.cleaned_data['message']
-            sender = form.cleaned_data['sender']
-            cc_myself = form.cleaned_data['cc_myself']
+#UPDATE: THIS ISN'T BEING USED...why do we have all these extraneous methods??
+#@login_required
+#def sendmail(request):
 
-            recipients = [form.cleaned_data['recipients']]
-            if cc_myself:
-                recipients.append(sender)
+#    if request.method == 'POST':
+#        form = ContactForm(request.POST)
+#        if form.is_valid():
+#            subject = form.cleaned_data['subject']
+#            message = form.cleaned_data['message']
+#            sender = form.cleaned_data['sender']
+#            cc_myself = form.cleaned_data['cc_myself']
+
+#            recipients = [form.cleaned_data['recipients']]
+#            if cc_myself:
+#                recipients.append(sender)
 
 
 
-            email = EmailMessage(subject, message, sender, recipients)
-            email.attach_file('images/Lydia.jpg')
-            email.send()
+#            email = EmailMessage(subject, message, sender, recipients)
+#            email.attach_file('images/Lydia.jpg')
+#            email.send()
 #            send_mail(subject, message, sender, recipients)
             #return HttpResponseRedirect('/thanks/') # Redirect after POST
         
 
     #send_mail('Welcome!','this is inbox doctor. i will tell you when you suck at responding to emails. inbox.dr was taken, so that\'s why it\'s inbox.doctor.', 'inbox.doctor@gmail.com', ['zhenya.gu@gmail.com','sirrice@gmail.com', 'ravdawg@gmail.com','farm.cp@gmail.com','melty710@gmail.com','jeezumpeez@gmail.com'], fail_silently=False)
 
-            return HttpResponse('mail sent')
+#            return HttpResponse('mail sent')
 
-    else:
-        form = ContactForm()
-        c = {}
-        c.update(csrf(request))
+#    else:
+#        form = ContactForm()
+#        c = {}
+#        c.update(csrf(request))
 
-        return render_to_response('emailanalysis/sendmail.html', {
-            'form': form,
-            },context_instance=RequestContext(request))
+#        return render_to_response('emailanalysis/sendmail.html', {
+#            'form': form,
+#            },context_instance=RequestContext(request))
 
 
 @login_required

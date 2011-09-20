@@ -63,6 +63,8 @@ class Email(models.Model):
     fr = models.ForeignKey(Contact, related_name="as_sender", db_column='fr')
     subj = models.TextField()
     date = models.DateTimeField()
+
+    #URGENT: Need to fix this so that imapid will accept multiple emails with the same ID but have different account numbers.
     imapid = models.IntegerField(unique=True)
     mid = models.TextField(unique=True)
     reply = models.TextField(null=True)  # references Email.mid

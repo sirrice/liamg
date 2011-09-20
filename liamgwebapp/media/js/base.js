@@ -8,11 +8,11 @@ function setupChart(name, title) {
  	chart.data.addColumn('number', 'emails');
 
   	             // Create and draw the visualization.
-   chart.chart = new google.visualization.ColumnChart(document.getElementById(name));
+   chart.chart = new google.visualization.LineChart(document.getElementById(name));
 	chart.options = {width:625, height:200,
 					hAxis: {showTextEvery: 6}, 
 					vAxis: {title: title, titleTextStyle: {fontName: "verdana", fontStyle: "none", fontSize: 13}},
-					legend: "none",
+			 legend: "none", lineWidth:4, pointSize: 7,
 					chartArea: {left:70,top:20,width:"90%",height:"70%"}};
 	chart.chart.draw(chart.data, chart.options);	
 	return chart;
@@ -27,7 +27,7 @@ function drawChart(data, chart) {
      	chart.data.addRow([xLabels[i], values[i]]);
     }
 
-	chart.chart = new google.visualization.ColumnChart(document.getElementById(chart.name));
+	chart.chart = new google.visualization.LineChart(document.getElementById(chart.name));
     chart.chart.draw(chart.data, chart.options);
 
 }

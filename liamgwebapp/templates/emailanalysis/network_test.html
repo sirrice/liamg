@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Blah</title>
+    <script type="text/javascript" src="../../media/js/d3/d3.js"></script>
+    <script type="text/javascript" src="../../media/js/d3/d3.layout.js"></script>
+    <script type="text/javascript" src="../../media/js/d3/d3.time.js"></script>
+    <script type="text/javascript" src="../../media/js/d3/d3.csv.js"></script>
+    <script type="text/javascript" src="../../media/js/network.js"></script>
+    <script type="text/javascript" src="../../media/js/jquery.js"></script>
+
+    <style type="text/css">
+
+svg {
+  width: 960px;
+  height: 500px;
+  font: 10px sans-serif;
+}
+
+.rule {
+  shape-rendering: crispEdges;
+}
+
+path.line {
+  fill: none;
+}
+
+.node{
+	z-index: 10;
+}
+.selected{
+	fill: red;
+}
+.track{
+	z-index: 10;
+}
+.enter_arrow_line{
+	z-index: 20;
+	fill:none;
+	stroke-width: 2;
+	stroke-linejoin: round;
+	stroke-opacity: 100;
+}
+.enter_arrowhead{
+	z-index:21;
+}
+.exit_arrow_line{
+	z-index: 20;
+	fill:none;
+	stroke-dasharray : 2,2;
+	stroke-width: 2;
+	stroke-linejoin: round;
+	stroke-opacity: 100;
+}
+.exit_arrowhead{
+	z-index: 21;
+	stroke: none;
+}
+.tooltip {
+	z-index: 100;
+	border: 3px solid grey;
+	background: white;
+	border-radius: 5px;
+	webkit-border-radius: 5px;
+	padding: 10px;
+	display: none;
+	position: absolute;
+	font-family: sans-serif;
+	font-size: 10pt;
+}
+
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+	function clone(obj) {
+	    if (null == obj || "object" != typeof obj) return obj;
+	    var copy = obj.constructor();
+	    for (var attr in obj) {
+	        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+	    }
+	    return copy;
+	}
+
+	threads = gen_threads(13);
+	names = threads.map(function(thread) { return thread[0];});
+	data = threads.map(function(thread) { return thread[1]; });
+	tids = names.map(function(name) {return name.tid;});
+	
+	var w = 700,
+	    h = 50 * threads.length,
+		trackmargin = 2,
+		arrowmargin = 2,
+	    x = d3.scale.linear().domain([0,10]).range([0, w]),
+	    y = d3.scale.linear().domain([0, names.length]).range([0, h ]),
+		color = d3.scale.linear().domain([0,threads.length]).range(["green", "steelblue"]),
+		color = d3.scale.category20(),
+	    parse = d3.time.format("%m/%Y").parse,
+	    format = d3.time.format("%b");
+
+	var labelsvg = d3.select("body").append("svg:svg")
+		.style("width", 100)
+		.style("height", h)
+		.style("float", "left")
+		.style("clear", "none")
+		.style("padding", "0")
+	.append("svg:g")
+		.attr("class", "container")
+		.attr("transform", "translate(0, 10)");	
+		
+	var svg = d3.select("body").append("svg:svg")
+	    .style("width", w)
+	    .style("height", h)
+		.style("float", "left")
+	  .append("svg:g")
+		.attr("id", "network_svg")
+		.attr('class', 'container')
+	    .attr("transform", "translate(20,10)");	
+	
+	d3.select("body").append("div").style("clear", "both");
+	
+	var g = svg.selectAll('g.container')
+		.data(data)
+	.enter().append('svg:g')
+		.attr("id", "network_container")
+		.style("z-index", 10)
+	
+
+	console.log(names);
+	var labels = labelsvg.selectAll('g.container')
+		.data(names)
+	.enter().append('svg:text')
+		.attr("x", 0)
+		.attr("dx", 10)
+		.attr("y", function(d) { return y(d.tid);})
+		.attr("dy", 3)
+		.style("font-size", "10pt")
+		.style("fill", function(d) {return darker(color(d.tid))})
+		.text(function(d) {return d.name})
+
+
+		
+
+
+	var c = g.selectAll("circle")
+		.data(function(d) { return d;})
+	.enter().append('svg:circle')
+		.attr("class", 'node')
+		.attr("cx", function(d,i) { return x(i);} )
+		.attr("cy", function(d,i) { return y(d.tid);})
+		.attr("r", function(d) {return d.size;})
+		.style("fill", function(d) { return color(d.tid); })
+		.style("opacity", "50%")
+		.on("mouseover", circle_mousein)
+		.on("mouseout", circle_mouseout)
+
+
+	var tt = d3.selectAll("body").selectAll("div.tooltip")
+		.data(d3.merge(data))//function(d) { return d;})
+	.enter().append('div')
+		.attr('class', "tooltip")
+		.attr('id', function(d,i) { return "tooltip_" + d.tid + "_" + (i % data[0].length); })
+		.style("left", 100)
+		.style("top", 100)
+		.attr("width", "20em")
+		.attr("height", "10ex")
+		.attr("rx", "2")
+		.attr("ry", '2')
+		.text(function(d) {return d.payload})
+
+	// drawing lines between the circles!
+	// Need pairs 		
+	g.selectAll('line.track')
+		.data(function(d) {return d;})
+	.enter().append('svg:line')
+		.attr("class", "track")
+		.attr('x1', track_x1)
+		.attr('x2', track_x2)
+		.attr('y1', track_y1)
+		.attr('y2', track_y2)
+		.style("stroke", function(d,i) {return (i == 0)? "none" : darker(color(d.tid))})//"#747170"})
+		.style("stroke-width", 2)
+	
+	
+	
+	// 
+	// Draw arrows!
+	//
+	// calculate x/y offset to get r+delta distance from d origin
+
+		
+	g.selectAll('path.enter_arrow_line')
+		.data(setup_enter_path)
+	.enter().append('svg:path')
+		.attr("class", "enter_arrow_line")
+		.attr('d', create_arrowpath)
+		.style("stroke", function(d) {return color(d.tid);})
+		.on("mouseover", function(d,i) { 
+			this.style['stroke-width'] = 4; 
+			this.style['stroke'] = d3.rgb(color(d.tid)).darker().toString();
+			this.style['cursor'] = "pointer"; })
+		.on("mouseout", function(d,i) { 
+			this.style['stroke-width'] = 2;
+			this.style['stroke'] = color(d.tid);
+			this.style['cursor'] = "none"})	
+
+	g.selectAll('path.enter_arrowhead')
+		.data(setup_enter_path)
+	.enter().append('svg:path')
+		.attr("class", "enter_arrowhead")
+		.attr("d", create_arrowhead)
+		.style("stroke", "none")
+		.style("fill", function(d) {return color(d.tid);})		
+
+	g.selectAll('path.exit_arrow_line')
+		.data(setup_exit_path)
+	.enter().append('svg:path')
+		.attr("class", "exit_arrow_line")
+		.attr('d', create_arrowpath)
+		.style("stroke", function(d) {return color(d.tid);})
+
+
+
+	g.selectAll('path.exit_arrowhead')
+		.data(setup_exit_path)
+	.enter().append('svg:path')
+		.attr("class", "exit_arrowhead")
+		.attr("d", create_arrowhead)
+		.style("fill", function(d) {return color(d.tid);})		
+
+
+
+
+
+	</script>
+  </body>
+</html>
