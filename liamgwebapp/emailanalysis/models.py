@@ -65,7 +65,8 @@ class Email(models.Model):
     date = models.DateTimeField()
 
     #URGENT: Need to fix this so that imapid will accept multiple emails with the same ID but have different account numbers.
-    imapid = models.IntegerField(unique=True)
+#    imapid = models.IntegerField(unique=True)
+    imapid = models.IntegerField()
     mid = models.TextField(unique=True)
     reply = models.TextField(null=True)  # references Email.mid
     multipart = models.BooleanField()
@@ -78,8 +79,9 @@ class Content(models.Model):
     class Meta:
         db_table = "contents"
 
-    email = models.OneToOneField(Email, db_column="emailid", related_name="content",
-                                 to_field="imapid")
+  #  email = models.OneToOneField(Email, db_column="emailid", related_name="content",
+  #                               to_field="imapid")
+    email = models.IntegerField()
     text = models.TextField() 
 
 class Ref(models.Model):
