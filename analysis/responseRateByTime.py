@@ -20,7 +20,8 @@ import re
 ##     The solution for this is to have an option on the front end that allows
 ##     a user to select multiple e-mail addresses for a particular individual.
 ##     Then, this script should then somehow map all those e-mails appropriately
-##     to get the desired answer.
+##     to get the desired answer. - I totally agree with this (CPF). I think 
+##     that everything should be user@mail.com format.
 ###########################################################
 
 

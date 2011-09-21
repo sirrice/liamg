@@ -89,7 +89,7 @@ def results(request):
 
 @login_required(login_url='/emailanalysis/login/')
 def results_sent(request):
-    dictionary = {"isRecMail":"false", "topListURL":"/emailanalysis/topsent/json/", "url_count":"/emailanalysis/countsent/json/"}
+    dictionary = {"isRecMail":"false", "topListURL":"/emailanalysis/topsent/json/", "url_count":"/emailanalysis/countsent/json/", "url_rate":"/emailanalysis/rate_sent/json"}
     dictionary["top_email_title"] = "Top Email Contacts"
     dictionary["top_email_desc"] = "Contacts who you most frequently email."
     dictionary["email_count"] = "Sent Emails"
@@ -366,7 +366,19 @@ def getjson(request, datatype):
         print 'hello'#enter code here
     
     elif datatype == "rate_sent":
-        print 'rate sent' #enter code here
+        #WIP: working on the connection to the already made algorithm for determining rate
+        req = request.REQUEST
+        start = req.get('start', None)
+        end = req.get('end', None)
+        replyAddy = curruser.username
+        emailAddy = req.get('email', 'ALL')
+        #if there is an empty email string, then set the replyAddy to ALL - this
+        #will filter for the entire database
+        if emailAddy == "":
+            emailAddy = 'ALL'
+        mode = req.get('mode', None)
+        data = responseRateByTime.get_response_rate(mode, start, end, emailAddy, replyAddy, conn)
+
     else:
         return HttpResponse('json call not recognized')
 

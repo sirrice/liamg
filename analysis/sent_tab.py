@@ -16,7 +16,6 @@ import math
 
 def get_count_sent_sql(start, end, user, to_email, conn):
     #query to get the number of sent emails for a specific user
-    print 'entered get_count_sent'
     c = conn.cursor()
     if to_email == "":
         #if there is no specific email to filter then select everything from the
@@ -46,5 +45,13 @@ def get_count_sent_sql(start, end, user, to_email, conn):
                    and emails.date >= '%s' and emails.date < '%s'
                  group by hour
                  order by hour asc""" % (to_email, user, user, start, end)
-    print sql 
     return sql
+
+def get_delay_sent_sql(start, end, user, to_email, conn):
+    print 'entered get delay sent'
+    if to_email == "":
+        #get all the latency information for the entire database for the user
+        print 'getting the latency information for user database'
+    else:
+        #get all the latency information for a specific user
+        print 'getting the latency information for a specific user'
