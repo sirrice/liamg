@@ -348,7 +348,7 @@ def getjson(request, datatype):
     elif datatype == "countmini":
         print 'hello' #enter code here
     
-    #TODO: use this to get the count of emails that a person sends to others
+    #Use this to get the count of emails that a person sends to others
     elif datatype == "countsent":
         queries = []
         user = curruser.username
@@ -412,13 +412,15 @@ def getjson(request, datatype):
 #            'form': form,
 #            },context_instance=RequestContext(request))
 #############
+ 
 
-@login_required
-def sendmail(request):
-    form = ContactForm()
-    c={}
-    c.update(csrf(request))
-    return render_to_response('emailanalysis/sendmail.html', {'form':form,}, context_instance = RequestContext(request))
+#####################
+#Are these methods here for refreshing the data in the database?
+#I don't think we are using them right now. Do we need to keep them around to use
+#them in the future?
+####################
+
+
 
 @login_required
 def refresh_account(request):
