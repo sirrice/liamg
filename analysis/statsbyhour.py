@@ -105,7 +105,7 @@ class RepliesByHour(object):
             WHERE.append("origdate < '%s'::timestamp" % end.strftime('%Y-%m-%d'))
 
         if reply is None:
-            WHERE.append("(me.id = l.replier or me.id = l.sender)")
+            WHERE.append("(me.id = l.sender or me.id = l.replier)")
 
         elif reply:
             WHERE.append("me.id = l.replier")
@@ -124,7 +124,7 @@ class RepliesByHour(object):
         WHERE = ' and '.join(WHERE)
         
         sql = "SELECT %s FROM latencies l, contacts me WHERE %s GROUP BY hour ORDER BY hour asc;" % (SELECT, WHERE)
-        
+        print sql
         return sql
 
 
