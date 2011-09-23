@@ -45,7 +45,7 @@ body {
 	text-align:center;
 	}
 .field {
-	width:425px;
+	width:460px;
 	text-align:right;
 	font-family:nevisBold;
 	font-size:18px;
@@ -99,8 +99,8 @@ p.error {
 	<p class="error">The email address or password seems to be invalid.<br />Please try logging in again.</p>
 	<form action="/emailanalysis/login/submit/" method="post">{% csrf_token %}
 		<div class="field">
-			<p>Email: {{form.username}}</p>
-			Password: {{form.password}}
+			<p>Gmail Address: {{form.username}}</p>
+			Gmail Password: {{form.password}}
 			<!--Use Default?: {{form.defaultdb}}<br />-->
 		</div>
 		<div id="clickme">
