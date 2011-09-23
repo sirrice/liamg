@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>inbox.dr | login</title>
+<title>inbox.dr | results</title>
 <link rel="shortcut icon" href="../favicon.png" /> 
 <link rel="stylesheet" type="text/css" href="" />
 <style type="text/css">
@@ -41,29 +41,24 @@ body {
 	/*margin-bottom:20px;*/
 }
 #login {
-	width:600px;
+	width:585px;
 	text-align:center;
 	}
 .field {
-	width:450px;
+	width:425px;
 	text-align:right;
 	font-family:nevisBold;
 	font-size:18px;
 }
 .field input {
+	padding:4px;
 	border: 2px #B5B7B9 solid;
 	border-radius:5px;
+	font:18px sans-serif;
 	-moz-border-radius:5px;
 }
-#username:hover {
-	border: 2px #555555 solid;
-	border-radius:5px;
-	-moz-border-radius:5px;
-}
-#password:hover {
-	border: 2px #555555 solid;
-	border-radius:5px;
-	-moz-border-radius:5px;
+input:focus { 
+	border: 2px #28aae1 solid;
 }
 .button {
 	width:166px;
@@ -75,10 +70,13 @@ body {
 	background:url('/media/images/cta_active.jpg') no-repeat;
 }
 #clickme {
-	margin-left:auto;
-	margin-right:auto;
+	margin: 10px auto;
 	width:166px;
 }
+p {
+	margin-top:0px;
+	margin-bottom:5px;
+	}
 p.error {
 	width:500px;
 	text-align:center;
@@ -96,19 +94,17 @@ p.error {
 	<div id="logo">
 		<img src="/media/images/logo-sm.png" />
 	</div>
-	
 	<div id="login">
-	<p class="error">The username or password provided seems to be invalid.<br />Please try logging in again.</p>
+	<p class="error">The email address or password seems to be invalid.<br />Please try logging in again.</p>
 	<form action="/emailanalysis/login/submit/" method="post">{% csrf_token %}
 		<div class="field">
-			Gmail Username: {{form.username}}<br />
-			Gmail Password: {{form.password}}<br />
+			<p>Email: {{form.username}}</p>
+			Password: {{form.password}}
 			<!--Use Default?: {{form.defaultdb}}<br />-->
 		</div>
-		<p>
 		<div id="clickme">
 			<input type="submit" class="button" value=""/>
-		</div></p>
+		</div>
 	</form>
 	</div>
 </div>
