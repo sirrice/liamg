@@ -96,8 +96,12 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
      (SUBJECT "atwoods")
      (SINCE 01-Jan-2011)
     """
+
+##The search string will only download for the year. This will shorten the download time that users will have
+##Will eventually need to implement a better algorithm to refresh this while a
+##user is looking at the data on the front end.
     label_string = "[Gmail]/All Mail"
-    search_string = "(SINCE 1-Jan-2009)"
+    search_string = "(SINCE 1-Jan-2011)"
 
     user = account.user
     host = account.host
