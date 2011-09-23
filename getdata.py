@@ -58,6 +58,8 @@ def find_text(bs, prefix=''):
 
 def execute_latencies(actid, conn):
     #make a cursor object to execute the sql script
+    ##latency is the difference between m1.date and m2.date
+
     c = conn.cursor()
      #fill the latencies table
     latencies_sql = """INSERT into latencies
