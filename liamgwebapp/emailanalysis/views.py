@@ -96,7 +96,7 @@ def results_sent(request):
     dictionary["email_count_desc"] = "Number of emails you sent."
     return render_to_response('emailanalysis/results.html', dictionary, context_instance=RequestContext(request))
 
-# log in view
+# login view
 def login_view(request):
     
     if request.method == 'POST':
@@ -104,32 +104,8 @@ def login_view(request):
 
         #check if the form is valid
         if form.is_valid():
-            defaultdb = form.cleaned_data['defaultdb']
-            if defaultdb:
-                #################
-                #We should get rid of this and replace it with something else
-                #I don't think we really need this anymore?
-                #################
-                # log in as default
-                username = "default@default.com"
-                user = authenticate(username=username,password='default')
-
-
-                # create default user if it doesn't exist
-                if not user:
-                    user = User.objects.create_user(username, username, "default")
-                    user = authenticate(username=username,password='default')
-
-                    userdb = Userdbs(username=username)
-                    userdb.save() # creates userdb.id
-                    dbname = 'mail.db'
-                    userdb.dbname = dbname
-                    userdb.save()
-                    
-                login(request,user)
-                return HttpResponseRedirect("/emailanalysis/results/")
-
-            else:
+            ##Check to make sure that the form has been filled out
+            if (form.cleaned_data['username'] and form.cleaned_data['password']):
                 username = form.cleaned_data['username']
                 password = form.cleaned_data['password']
 
