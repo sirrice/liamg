@@ -79,7 +79,16 @@ def execute_latencies(actid, conn):
     conn.commit()
 
 
-    
+################################################################################
+#Download headers is the main method that starts to download the headers
+#Inputs:
+#account - user account with user information
+#passw - user password
+#conn - connection to the database
+#chunk - number of emails that download at a time?
+#maxmsgs - the max number of msgs that get downloaded
+#gettext - get the content of the messages
+#################################################################################    
 
 def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=True):
     """
@@ -97,9 +106,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
      (SINCE 01-Jan-2011)
     """
 
-##The search string will only download for the year. This will shorten the download time that users will have
-##Will eventually need to implement a better algorithm to refresh this while a
-##user is looking at the data on the front end.
+    #download for a year 
     label_string = "[Gmail]/All Mail"
     search_string = "(SINCE 1-Jan-2011)"
 

@@ -126,7 +126,17 @@ def login_view(request):
                     else:
                         return HttpResponse('user not recognized') # Return fail
                 # user doesn't exist: create user
-                # download data, return results page
+
+
+                #############################
+                #Need to add a method so that you can update the database with new 
+                #messages. 
+                #############################
+
+
+
+
+                #if you don't have a user, then download data, return results page
                 else:
                     user = User.objects.create_user(username,username,password)
                     user = authenticate(username=username,password=password)
@@ -339,7 +349,7 @@ def getjson(request, datatype):
 
     #TODO: use this to get the delay between when user responds to emails that others send to them
     elif datatype == "delay_sent":
-        print 'hello'#enter code here
+        print 'hello'#enter code here that gets the delay
     
     elif datatype == "rate_sent":
         #WIP: working on the connection to the already made algorithm for determining rate
