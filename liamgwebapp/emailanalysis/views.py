@@ -158,7 +158,7 @@ def login_view(request):
         else:
             return HttpResponse('form invalid')
     else:
-#        form = LoginForm(initial={'username':'default@default.com','password':'default','defaultdb':True})
+
         form = LoginForm(initial={'username':'','password':'','defaultdb':False})
         c = {}
         c.update(csrf(request))
