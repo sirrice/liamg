@@ -96,7 +96,7 @@ def results_sent(request):
     dictionary["email_count_desc"] = "Number of emails you sent."
     return render_to_response('emailanalysis/results.html', dictionary, context_instance=RequestContext(request))
 
-# log in view
+# login view
 def login_view(request):
     
     if request.method == 'POST':
@@ -104,32 +104,8 @@ def login_view(request):
 
         #check if the form is valid
         if form.is_valid():
-            defaultdb = form.cleaned_data['defaultdb']
-            if defaultdb:
-                #################
-                #We should get rid of this and replace it with something else
-                #I don't think we really need this anymore?
-                #################
-                # log in as default
-                username = "default@default.com"
-                user = authenticate(username=username,password='default')
-
-
-                # create default user if it doesn't exist
-                if not user:
-                    user = User.objects.create_user(username, username, "default")
-                    user = authenticate(username=username,password='default')
-
-                    userdb = Userdbs(username=username)
-                    userdb.save() # creates userdb.id
-                    dbname = 'mail.db'
-                    userdb.dbname = dbname
-                    userdb.save()
-                    
-                login(request,user)
-                return HttpResponseRedirect("/emailanalysis/results/")
-
-            else:
+            ##Check to make sure that the form has been filled out
+            if (form.cleaned_data['username'] and form.cleaned_data['password']):
                 username = form.cleaned_data['username']
                 password = form.cleaned_data['password']
 
@@ -138,7 +114,8 @@ def login_view(request):
                     getdata.authenticate_login('imap.googlemail.com',username,password)
                 except:
                     # not valid --> need to find a better template to navigate to
-                    return HttpResponse('user/password combo invalid')
+#                    return HttpResponseRe('user/password combo invalid')
+                    return HttpResponseRedirect("/emailanalysis/loginfail/")
 
                 # check if user in db
                 user = authenticate(username=username,password=password)
@@ -150,7 +127,17 @@ def login_view(request):
                     else:
                         return HttpResponse('user not recognized') # Return fail
                 # user doesn't exist: create user
-                # download data, return results page
+
+
+                #############################
+                #Need to add a method so that you can update the database with new 
+                #messages. 
+                #############################
+
+
+
+
+                #if you don't have a user, then download data, return results page
                 else:
                     user = User.objects.create_user(username,username,password)
                     user = authenticate(username=username,password=password)
@@ -182,7 +169,7 @@ def login_view(request):
         else:
             return HttpResponse('form invalid')
     else:
-#        form = LoginForm(initial={'username':'default@default.com','password':'default','defaultdb':True})
+
         form = LoginForm(initial={'username':'','password':'','defaultdb':False})
         c = {}
         c.update(csrf(request))
@@ -363,7 +350,7 @@ def getjson(request, datatype):
 
     #TODO: use this to get the delay between when user responds to emails that others send to them
     elif datatype == "delay_sent":
-        print 'hello'#enter code here
+        print 'hello'#enter code here that gets the delay
     
     elif datatype == "rate_sent":
         #WIP: working on the connection to the already made algorithm for determining rate
