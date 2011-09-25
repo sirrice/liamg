@@ -17,6 +17,7 @@ urlpatterns = patterns('emailanalysis.views',
                        (r'^refresh/status/(\d+)/$', 'refresh_check'),
                        (r'^refresh/$', 'refresh_account'),
                        (r'^refresh/wait/(\d+)/$', 'refresh_wait'),
+    (r'^loginfail/$', direct_to_template, {'template': 'emailanalysis/loginError.html'}),
 #    (r'^pie/$', 'pie'),                                              
 #    (r'^sendmail/send/$', 'sendmail'),
 #    (r'^test/$', direct_to_template, {'template': 'emailanalysis/testautocomplete.html'}),
@@ -29,7 +30,7 @@ urlpatterns = patterns('emailanalysis.views',
                        
 
     # Examples:
-    # url(r'^$', 'liamgwebapp.views.home', name='home'),
+    # url(r'^$', 'liamgwebapp.views.home', name='urls return templatehome'),
     # url(r'^liamgwebapp/', include('liamgwebapp.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:

@@ -138,7 +138,8 @@ def login_view(request):
                     getdata.authenticate_login('imap.googlemail.com',username,password)
                 except:
                     # not valid --> need to find a better template to navigate to
-                    return HttpResponse('user/password combo invalid')
+#                    return HttpResponseRe('user/password combo invalid')
+                    return HttpResponseRedirect("/emailanalysis/loginfail/")
 
                 # check if user in db
                 user = authenticate(username=username,password=password)
