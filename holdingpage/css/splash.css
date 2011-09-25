@@ -1,0 +1,28 @@
+html {
+	background:url('../images/bg.jpg') repeat-x;
+	margin:0;
+	text-align:center;
+	}
+body {
+	margin:auto;
+	width:900px;
+	}
+.box {
+	margin: 30px auto 0 auto;
+	padding:30px 0 10px 0;
+	width:800px;
+	background:white;
+	background-color:rgba(255,255,255,0.5);	
+	border:2px #B5B7B9 solid;
+	border-radius:15px;
+	-moz-border-radius:15px;
+	-webkit-box-shadow: 5px 5px 1px #B5B7B9;
+	box-shadow: 5px 5px 1px #B5B7B9;
+	}
+p {
+	margin-top: 103px;
+	}
+.tape {
+	padding:174px 0 0 35px;
+	position:absolute;
+}
