@@ -58,6 +58,8 @@ def find_text(bs, prefix=''):
 
 def execute_latencies(actid, conn):
     #make a cursor object to execute the sql script
+    ##latency is the difference between m1.date and m2.date
+
     c = conn.cursor()
      #fill the latencies table
     latencies_sql = """INSERT into latencies
@@ -77,7 +79,16 @@ def execute_latencies(actid, conn):
     conn.commit()
 
 
-    
+################################################################################
+#Download headers is the main method that starts to download the headers
+#Inputs:
+#account - user account with user information
+#passw - user password
+#conn - connection to the database
+#chunk - number of emails that download at a time?
+#maxmsgs - the max number of msgs that get downloaded
+#gettext - get the content of the messages
+#################################################################################    
 
 def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=True):
     """
@@ -94,8 +105,10 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
      (SUBJECT "atwoods")
      (SINCE 01-Jan-2011)
     """
+
+    #download for a year 
     label_string = "[Gmail]/All Mail"
-    search_string = "(SINCE 1-Jan-2009)"
+    search_string = "(SINCE 1-Jan-2011)"
 
     user = account.user
     host = account.host

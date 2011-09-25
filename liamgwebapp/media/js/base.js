@@ -5,7 +5,7 @@ function setupChart(name, title) {
 	chart.name = name;
    	chart.data = new google.visualization.DataTable({'labels': [], 'y' : []});
 	chart.data.addColumn('string', 'date');
- 	chart.data.addColumn('number', 'emails');
+ 	chart.data.addColumn('number', title);
 
   	             // Create and draw the visualization.
    chart.chart = new google.visualization.LineChart(document.getElementById(name));
@@ -22,9 +22,9 @@ function drawChart(data, chart) {
 	xLabels = data.labels;
     values = data.y;
     chart.data.addColumn('string', 'date');
-    chart.data.addColumn('number', 'emails');
+    chart.data.addColumn('number', chart.options.vAxis.title);
     for(var i=0; i<xLabels.length;i++){
-     	chart.data.addRow([xLabels[i], values[i]]);
+     	chart.data.addRow([xLabels[i], Math.round(values[i])]);
     }
 
 	chart.chart = new google.visualization.LineChart(document.getElementById(chart.name));

@@ -8,7 +8,7 @@ from django.views.generic.simple import direct_to_template
 urlpatterns = patterns('emailanalysis.views',
     (r'^$', 'index'),
     (r'^(?P<datatype>[\w]+)/json/$', 'getjson'),
-    (r'^sendmail/$', 'sendmail'),
+
     (r'^login/submit/$', 'login_view'),
     (r'^login/$', 'login_view'),
     (r'^logout/$', 'logout_view'),
@@ -26,7 +26,7 @@ urlpatterns = patterns('emailanalysis.views',
 #   (r'^home/$', 'index'),
 #   (r'^createuser/$', 'create_user'),
 #   (r'^createuser/submit/$', 'create_user'),
-
+#    (r'^sendmail/$', 'sendmail'),
                        
 
     # Examples:

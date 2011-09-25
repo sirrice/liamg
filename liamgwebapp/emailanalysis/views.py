@@ -89,14 +89,14 @@ def results(request):
 
 @login_required(login_url='/emailanalysis/login/')
 def results_sent(request):
-    dictionary = {"isRecMail":"false", "topListURL":"/emailanalysis/topsent/json/", "url_count":"/emailanalysis/countsent/json/"}
+    dictionary = {"isRecMail":"false", "topListURL":"/emailanalysis/topsent/json/", "url_count":"/emailanalysis/countsent/json/", "url_rate":"/emailanalysis/rate_sent/json"}
     dictionary["top_email_title"] = "Top Email Contacts"
     dictionary["top_email_desc"] = "Contacts who you most frequently email."
     dictionary["email_count"] = "Sent Emails"
     dictionary["email_count_desc"] = "Number of emails you sent."
     return render_to_response('emailanalysis/results.html', dictionary, context_instance=RequestContext(request))
 
-# log in view
+# login view
 def login_view(request):
     
     if request.method == 'POST':
@@ -104,32 +104,8 @@ def login_view(request):
 
         #check if the form is valid
         if form.is_valid():
-            defaultdb = form.cleaned_data['defaultdb']
-            if defaultdb:
-                #################
-                #We should get rid of this and replace it with something else
-                #I don't think we really need this anymore?
-                #################
-                # log in as default
-                username = "default@default.com"
-                user = authenticate(username=username,password='default')
-
-
-                # create default user if it doesn't exist
-                if not user:
-                    user = User.objects.create_user(username, username, "default")
-                    user = authenticate(username=username,password='default')
-
-                    userdb = Userdbs(username=username)
-                    userdb.save() # creates userdb.id
-                    dbname = 'mail.db'
-                    userdb.dbname = dbname
-                    userdb.save()
-                    
-                login(request,user)
-                return HttpResponseRedirect("/emailanalysis/results/")
-
-            else:
+            ##Check to make sure that the form has been filled out
+            if (form.cleaned_data['username'] and form.cleaned_data['password']):
                 username = form.cleaned_data['username']
                 password = form.cleaned_data['password']
 
@@ -151,7 +127,17 @@ def login_view(request):
                     else:
                         return HttpResponse('user not recognized') # Return fail
                 # user doesn't exist: create user
-                # download data, return results page
+
+
+                #############################
+                #Need to add a method so that you can update the database with new 
+                #messages. 
+                #############################
+
+
+
+
+                #if you don't have a user, then download data, return results page
                 else:
                     user = User.objects.create_user(username,username,password)
                     user = authenticate(username=username,password=password)
@@ -183,7 +169,7 @@ def login_view(request):
         else:
             return HttpResponse('form invalid')
     else:
-#        form = LoginForm(initial={'username':'default@default.com','password':'default','defaultdb':True})
+
         form = LoginForm(initial={'username':'','password':'','defaultdb':False})
         c = {}
         c.update(csrf(request))
@@ -349,7 +335,7 @@ def getjson(request, datatype):
     elif datatype == "countmini":
         print 'hello' #enter code here
     
-    #TODO: use this to get the count of emails that a person sends to others
+    #Use this to get the count of emails that a person sends to others
     elif datatype == "countsent":
         queries = []
         user = curruser.username
@@ -364,10 +350,22 @@ def getjson(request, datatype):
 
     #TODO: use this to get the delay between when user responds to emails that others send to them
     elif datatype == "delay_sent":
-        print 'hello'#enter code here
+        print 'hello'#enter code here that gets the delay
     
     elif datatype == "rate_sent":
-        print 'rate sent' #enter code here
+        #WIP: working on the connection to the already made algorithm for determining rate
+        req = request.REQUEST
+        start = req.get('start', None)
+        end = req.get('end', None)
+        replyAddy = curruser.username
+        emailAddy = req.get('email', 'ALL')
+        #if there is an empty email string, then set the replyAddy to ALL - this
+        #will filter for the entire database
+        if emailAddy == "":
+            emailAddy = 'ALL'
+        mode = req.get('mode', None)
+        data = responseRateByTime.get_response_rate(mode, start, end, emailAddy, replyAddy, conn)
+
     else:
         return HttpResponse('json call not recognized')
 
@@ -413,13 +411,15 @@ def getjson(request, datatype):
 #            'form': form,
 #            },context_instance=RequestContext(request))
 #############
+ 
 
-@login_required
-def sendmail(request):
-    form = ContactForm()
-    c={}
-    c.update(csrf(request))
-    return render_to_response('emailanalysis/sendmail.html', {'form':form,}, context_instance = RequestContext(request))
+#####################
+#Are these methods here for refreshing the data in the database?
+#I don't think we are using them right now. Do we need to keep them around to use
+#them in the future?
+####################
+
+
 
 @login_required
 def refresh_account(request):
