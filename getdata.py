@@ -135,7 +135,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
     dlcost = 0.0
     dbcost = 0.0
     
-
+    #take information and find the number of emails that are downloaded
     mids = sorted(map(int, dat[0].split()))
     if account.max_dl_mid != -1:
         mids = filter(lambda mid: mid > account.max_dl_mid, mids)
@@ -430,6 +430,7 @@ class AsyncDownload(threading.Thread):
             if account.refreshing: return
             account.refreshing = True
             account.save()
+            #not sure this is the best way to execute this
             download_headers(self.account, self.password, self.conn, self.chunk, self.maxmsgs)
             self.account.refreshing = False
             self.account.save()

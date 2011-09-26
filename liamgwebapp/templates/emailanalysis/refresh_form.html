@@ -11,7 +11,7 @@
 	<form action="/emailanalysis/refresh/" method="POST" onsubmit="return refresh_account()">{% csrf_token %}
 		{{user}}
 		{{form.accounts}}<br/>
-		{{form.password}}
+	  Password: {{form.password}}
 	</form>
 </body>
 </html>

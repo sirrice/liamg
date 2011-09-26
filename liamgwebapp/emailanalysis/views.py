@@ -125,16 +125,14 @@ def login_view(request):
                         return HttpResponseRedirect("/emailanalysis/results/")
                     else:
                         return HttpResponse('user not recognized') # Return fail
-                # user doesn't exist: create user
+
+
 
 
                 #############################
                 #Need to add a method so that you can update the database with new 
                 #messages. 
                 #############################
-
-
-
 
                 #if you don't have a user, then download data, return results page
                 else:
@@ -422,6 +420,7 @@ def getjson(request, datatype):
 
 @login_required
 def refresh_account(request):
+#going to call this view when we need to refresh the accounts with new data
     user = request.user
     if request.method == 'GET':
         form = RefreshForm(user)
@@ -433,6 +432,7 @@ def refresh_account(request):
         if form.is_valid():
             password = form.cleaned_data['password']
             account = form.cleaned_data['accounts']
+            
             running = account.check_for_new(password)
             return HttpResponseRedirect('/emailanalysis/refresh/wait/%d/' % account.pk)
     return render_to_response('emailanalysis/refresh_form.html',

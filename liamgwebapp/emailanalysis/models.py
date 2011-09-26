@@ -28,7 +28,7 @@ class Account(models.Model):
     
     @transaction.commit_manually
     def check_for_new(self, password):
-    
+        #not sure what's going on here??
         # wrap in xact
         if self.refreshing:
             return False
@@ -37,7 +37,7 @@ class Account(models.Model):
                           user=settings.DATABASES['default']['USER'],
                           password=settings.DATABASES['default']['PASSWORD'])
         ad = AsyncDownload(self, password, conn, 100)
-        ad.start()
+        ad.run()
         return True
 
     def __unicode__(self):
