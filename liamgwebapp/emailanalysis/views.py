@@ -98,20 +98,28 @@ def results_sent(request):
 
 # login view
 def login_view(request):
-    
+    print 'in login view'
     if request.method == 'POST':
         form = LoginForm(request.POST)
-
+        print 'posted'
         #check if the form is valid
         if form.is_valid():
             ##Check to make sure that the form has been filled out
             if (form.cleaned_data['username'] and form.cleaned_data['password']):
                 username = form.cleaned_data['username']
                 password = form.cleaned_data['password']
-
+                print 'this is the username:'
+                print username
+              
                 # check if gmail password is valid
                 try:
-                    getdata.authenticate_login('imap.googlemail.com',username,password)
+                    if username.endswith('@gmail.com'):
+                        getdata.authenticate_login('imap.googlemail.com', username, password)
+                    elif username.endswith("@yandex.ru"):
+                        getdata.authenticate_login('imap.yandex.ru', username, password)
+
+                    else:
+                        return HttpResponse('Username is not recognized.')
                 except:
                     # not valid --> need to find a better template to navigate to
 #                    return HttpResponseRe('user/password combo invalid')
@@ -141,9 +149,12 @@ def login_view(request):
                     user = authenticate(username=username,password=password)
                     login(request,user)
                     # create account for user
-                    account = Account(user=user, host="imap.googlemail.com", username="username")
-                    account.save()
-
+                    if username.endswith('@gmail.com'):
+                        account = Account(user=user, host="imap.googlemail.com", username="username")
+                        account.save()
+                    elif username.endswith('@yandex.ru'):
+                        account= Account(user=user, host='imap.yandex.ru', username='username')
+                        account.save()
                     #IMPORTANT: create the connection string and connect to the database
                     conn = connection
                     #conn_string = "host=localhost dbname=liamg user=liamg password=liamg"

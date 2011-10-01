@@ -105,10 +105,14 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
      (SUBJECT "atwoods")
      (SINCE 01-Jan-2011)
     """
-
+    print 'in download headers'
     #download for a year 
-    label_string = "[Gmail]/All Mail"
-    search_string = "(SINCE 1-Jan-2011)"
+    if account.host == 'imap.googlemail.com':
+        label_string = "[Gmail]/All Mail"
+    elif account.host == 'imap.yandex.ru':
+        label_string = 'INBOX'
+
+    search_string = "(SINCE 1-Jan-2010)"
 
     user = account.user
     host = account.host
@@ -119,6 +123,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
     try:
         imap_conn.login(user.username, passw)
         imap_conn.select(label_string)
+
     except Exception, err:
         import traceback
         print >> sys.stderr, err
@@ -131,18 +136,22 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
     typ, dat = imap_conn.search(None, search_string)
     iternum = 0
 
-    # profiling information
+    # profiling information - understand how much time it takes to download the entire headers for the database
     dlcost = 0.0
     dbcost = 0.0
     
-    #take information and find the number of emails that are downloaded
+    #take information and find the number of emails that are downloaded. dat[0] is the list of numbers, .split() puts a "," between each of the numbers, then map iterates over the split list and changes each to an int. sorted(map) sorts the list.
     mids = sorted(map(int, dat[0].split()))
+
+    #if nothing has been filtered, then filter. Else there is nothing left and do nothing.
     if account.max_dl_mid != -1:
         mids = filter(lambda mid: mid > account.max_dl_mid, mids)
     if len(mids) == 0:
         print "no messages left"
         return
     account.max_mid = max(mids)
+
+    #define the max_mid for the account and save it to the model - this method is a default django model.save(). This will commit the data for the model to the database
     account.save()
 
     d = None
@@ -153,7 +162,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
             curids = mids[int(idx*chunk):int((idx*chunk)+chunk)]
             print "processing messages %d - %d" % (idx*chunk, min((idx+1) * chunk,len(mids)))
 
-            
+            #keep track of the start time to see how long the process takes
             start = time.time()
             typ, dat = imap_conn.fetch(','.join(map(str,curids)), '(BODY.PEEK[HEADER] BODYSTRUCTURE)')
             dlcost += time.time() - start
