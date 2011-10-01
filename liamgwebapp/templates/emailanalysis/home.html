@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>inbox.dr | results</title>
+<title>inboxdr.com | login</title>
 <link rel="shortcut icon" href="../favicon.png" /> 
 <link rel="stylesheet" type="text/css" href="" />
 <style type="text/css">
@@ -38,13 +38,14 @@ body {
 	box-shadow: 5px 5px 1px #B5B7B9;
 	}
 #logo {
-	margin-bottom:20px;
+	margin-bottom:10px;
 }
 #login {
 	width:585px;
 	text-align:center;
 	}
 .field {
+	margin-top:20px;
 	width:460px;
 	text-align:right;
 	font-family:nevisBold;
@@ -78,6 +79,16 @@ p {
 	margin-top:0px;
 	margin-bottom:5px;
 	}
+p.error {
+	width:500px;
+	text-align:center;
+	background-color:#FFCFCF;
+	font:16px nevisBold;
+	color:#FF3600;
+	margin:0 15px 0px 15px;
+	padding:0 0px 3px 0px;
+}
+
 </style>
 </head>
 
@@ -87,7 +98,13 @@ p {
 		<img src="/media/images/logo-sm.png" />
 	</div>
 	<div id="login">
-
+	{% if error %}
+	<p class="error">
+	{% autoescape off %}
+	{{ error }}
+	{% endautoescape %}
+	</p>
+	{% endif %}
 	<form action="/emailanalysis/login/submit/" method="post">{% csrf_token %}
 		<div class="field">
 			<p>Gmail Address: {{form.username}}</p>

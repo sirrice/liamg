@@ -102,6 +102,17 @@ def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
         print 'posted'
+	
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+		
+	#login error message	
+	def errorHandle(error):
+		form = LoginForm(initial={'username':'','password':'','defaultdb':False})
+		c = {}
+		c.update(csrf(request))
+		return render_to_response('emailanalysis/home.html', {'error': error, 'form': form,},context_instance=RequestContext(request))
+
         #check if the form is valid
         if form.is_valid():
             ##Check to make sure that the form has been filled out
@@ -121,9 +132,7 @@ def login_view(request):
                     else:
                         return HttpResponse('Username is not recognized.')
                 except:
-                    # not valid --> need to find a better template to navigate to
-#                    return HttpResponseRe('user/password combo invalid')
-                    return HttpResponseRedirect("/emailanalysis/loginfail/")
+					return errorHandle(u'Login failed for ' + username + '.<br/>Please try logging in again.')
 
                 # check if user in db
                 user = authenticate(username=username,password=password)
@@ -174,11 +183,17 @@ def login_view(request):
 
                     #redirect to results page
                     return HttpResponseRedirect("/emailanalysis/results")
-
-        else:
-            return HttpResponse('form invalid')
+		
+		#invalid entry messages
+        else: 
+			username=request.POST.get('username')
+			password=request.POST.get('password')
+			if not username or not password:
+				return errorHandle(u'Please fill in both fields to log in.')
+			else:
+				return errorHandle(u'Improper email format. Please type out your entire<br />email address (e.g. username@example.com)')
+				
     else:
-
         form = LoginForm(initial={'username':'','password':'','defaultdb':False})
         c = {}
         c.update(csrf(request))
