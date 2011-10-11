@@ -2,8 +2,8 @@ from django.conf.urls.defaults import patterns, include, url
 from django.views.generic.simple import direct_to_template
 
 # Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+from django.contrib import admin
+admin.autodiscover()
 
 urlpatterns = patterns('emailanalysis.views',
     (r'^$', 'index'),
@@ -18,6 +18,7 @@ urlpatterns = patterns('emailanalysis.views',
                        (r'^refresh/$', 'refresh_account'),
                        (r'^refresh/wait/(\d+)/$', 'refresh_wait'),
     (r'^loginfail/$', direct_to_template, {'template': 'emailanalysis/loginError.html'}),
+    (r'^admin/', include(admin.site.urls)),
 #    (r'^pie/$', 'pie'),                                              
 #    (r'^sendmail/send/$', 'sendmail'),
 #    (r'^test/$', direct_to_template, {'template': 'emailanalysis/testautocomplete.html'}),

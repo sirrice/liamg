@@ -106,7 +106,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
      (SINCE 01-Jan-2011)
     """
     print 'in download headers'
-    #download for a year 
+    #download for a year. depending on the host, use different label_string
     if account.host == 'imap.googlemail.com':
         label_string = "[Gmail]/All Mail"
     elif account.host == 'imap.yandex.ru':
@@ -157,6 +157,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
     d = None
     print '%d total messages left' % len(mids)
 
+    #process the mids in batches of 1000. Use fetch for 1000 headers at a time. Is there a reason to do this as opposed to doing them all at once? Or maybe one at a time?
     try:
         for idx in xrange(0, int(math.ceil(float(len(mids))/chunk))):
             curids = mids[int(idx*chunk):int((idx*chunk)+chunk)]
@@ -175,6 +176,7 @@ def download_headers(account, passw, conn, chunk=1000.0, maxmsgs=None, gettext=T
 
                 cur = conn.cursor()
                 try:            
+                    #send mid and header information (d) to proc_msg
                     if proc_msg(cur, account, mid, d) is not None:
                         if gettext:
                             add_email_text(cur, imap_conn, mid, d[0])
@@ -243,6 +245,7 @@ def authenticate_login(imap_hostname, user, passw):
 def proc_msg(cur, account, imapid, d):
     """
     clean and extract important header information, and store in database
+    use the data from the header (d) to store in database
     """
     if len(d) == 0: return None
     try:
@@ -254,7 +257,8 @@ def proc_msg(cur, account, imapid, d):
     multipart = e.is_multipart()
     to = extract_names(e.get('To', '')) 
     
-    #break apart the headers of each email
+    #break apart the headers of each email using methods generated in this same script
+    #extract_names, clean_date, extract_refs
     fr =  extract_names(e['From'])
     cc = extract_names(e.get('CC', ''))
     bcc = extract_names(e.get('BCC', ''))

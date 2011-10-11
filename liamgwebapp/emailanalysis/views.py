@@ -59,8 +59,9 @@ class ContactForm(forms.Form):
     recipients = forms.EmailField()
     cc_myself = forms.BooleanField(required=False)
 
+
+#creates a Login Form object that stores a username and password
 class LoginForm(forms.Form):
-#    username = forms.CharField(widget=forms.TextInput(attrs={'size':'25','style':'font-size:18px'}),max_length=100)
     username = forms.EmailField(widget=forms.TextInput(attrs={'size':'25','style':'font-size:18px'}), max_length=100)
     password = forms.CharField(widget=forms.PasswordInput(render_value=False, attrs={'size':'25','style':'font-size:18px'}),max_length=100)
     defaultdb = forms.NullBooleanField()
@@ -98,14 +99,11 @@ def results_sent(request):
 
 # login view
 def login_view(request):
-    print 'in login view'
-    if request.method == 'POST':
-        form = LoginForm(request.POST)
-        print 'posted'
 	
     if request.method == 'POST':
+        #store the data as an object Form. This allows you to call the username and password directly from the object 
         form = LoginForm(request.POST)
-		
+
 	#login error message	
 	def errorHandle(error):
 		form = LoginForm(initial={'username':'','password':'','defaultdb':False})
@@ -113,31 +111,39 @@ def login_view(request):
 		c.update(csrf(request))
 		return render_to_response('emailanalysis/home.html', {'error': error, 'form': form,},context_instance=RequestContext(request))
 
-        #check if the form is valid
+        #check if the form is valid. See if all the validation rules pass on the form object from the forms.Form class
         if form.is_valid():
             ##Check to make sure that the form has been filled out
             if (form.cleaned_data['username'] and form.cleaned_data['password']):
-                username = form.cleaned_data['username']
+                #cleaned_data converts the value to a specific value type in this case it's a string
+                username = form.cleaned_data['username'] 
                 password = form.cleaned_data['password']
-                print 'this is the username:'
-                print username
+
               
                 # check if gmail password is valid
                 try:
+                    #pass in the host name for the imap server, username and password --> authenticate_login makes the connection 
+                    #to the imap server via IMAP4_SSL and logs the user into their specific account via IMAP4_SSL.login(user, pass)
                     if username.endswith('@gmail.com'):
                         getdata.authenticate_login('imap.googlemail.com', username, password)
                     elif username.endswith("@yandex.ru"):
                         getdata.authenticate_login('imap.yandex.ru', username, password)
 
                     else:
+                        #if there is not a @yandex or @gmail, then the response will be sent back to the front end as bad
                         return HttpResponse('Username is not recognized.')
                 except:
-					return errorHandle(u'Login failed for ' + username + '.<br/>Please try logging in again.')
+                    #if the try doesn't work, then use errorHandle function in this method (above)
+                    return errorHandle(u'Login failed for ' + username + '.<br/>Please try logging in again.')
 
-                # check if user in db
+                # check if user in db. 
+                #authenticate(username, password) method returns a user object from the django.auth library
+                #if the user exists in the database. returns None if there is no user in the database
                 user = authenticate(username=username,password=password)
                 if user is not None:
+                    #check if the user is active (boolean). This will be false if you want to deactivate an account.
                     if user.is_active:
+                        #use django.contrib.auth.views.login
                         login(request,user)
                         # should redirect user to the results page
                         return HttpResponseRedirect("/emailanalysis/results/")
@@ -145,25 +151,28 @@ def login_view(request):
                         return HttpResponse('user not recognized') # Return fail
 
 
-
-
                 #############################
                 #Need to add a method so that you can update the database with new 
                 #messages. 
                 #############################
 
-                #if you don't have a user, then download data, return results page
+                #if you don't have a user, then download data, return results page. Using the django.auth library you first
+                #create_user => creates, saves then returns a user. User that is returned has is_active set to True
                 else:
+                    #creates and saves a user. user is returned and is_active is set to True
                     user = User.objects.create_user(username,username,password)
                     user = authenticate(username=username,password=password)
                     login(request,user)
-                    # create account for user
+                    # create account for user using the models.py. Account class exists in models.py
+                    #save the account that was created to the database
                     if username.endswith('@gmail.com'):
-                        account = Account(user=user, host="imap.googlemail.com", username="username")
+                        account = Account(user=user, host="imap.googlemail.com", username=username)
                         account.save()
                     elif username.endswith('@yandex.ru'):
-                        account= Account(user=user, host='imap.yandex.ru', username='username')
+                        account= Account(user=user, host='imap.yandex.ru', username=username)
                         account.save()
+
+
                     #IMPORTANT: create the connection string and connect to the database
                     conn = connection
                     #conn_string = "host=localhost dbname=liamg user=liamg password=liamg"
@@ -174,7 +183,9 @@ def login_view(request):
                     c = conn.cursor()
                     
                     #get the account id for the specific user
-                    actidSQL = "select id from accounts where user_id = (select id from auth_user where username = '%s');" % user
+                    actidSQL = """select id 
+                                     from accounts where user_id = 
+                                     (select id from auth_user where username = '%s');""" % user
                     c.execute(actidSQL)
                     actid = c.fetchone()[0]
                     
@@ -186,12 +197,12 @@ def login_view(request):
 		
 		#invalid entry messages
         else: 
-			username=request.POST.get('username')
-			password=request.POST.get('password')
-			if not username or not password:
-				return errorHandle(u'Please fill in both fields to log in.')
-			else:
-				return errorHandle(u'Improper email format. Please type out your entire<br />email address (e.g. username@example.com)')
+            username=request.POST.get('username')
+            password=request.POST.get('password')
+            if not username or not password:
+                return errorHandle(u'Please fill in both fields to log in.')
+            else:
+                return errorHandle(u'Improper email format. Please type out your entire<br />email address (e.g. username@example.com)')
 				
     else:
         form = LoginForm(initial={'username':'','password':'','defaultdb':False})
