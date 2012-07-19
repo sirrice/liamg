@@ -23,7 +23,6 @@ def get_spam_contacts(account_id, conn):
         c.execute(sql, (account_id,))
         res = c.fetchall()
 
-#        return res
         return map(int, res)
     except Exception, e:
         print >>sys.stderr, e

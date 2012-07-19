@@ -66,6 +66,7 @@ function filterByEmail(){
           drawChart(data, chartsData['latencyChart']);
       }); 
       opts['mode']= 'hour';
+      //rate chart
       $.getJSON(url_rate_string, opts, function(data){
           drawChart(data, chartsData['rateChart']);
       });
@@ -90,7 +91,6 @@ function updateDateRange(start, end) {
 
 //create the charts for the divs. set the min and max date for the daterange slider
 function init() {	
-
       //object to hold all the charts that are on the page
       chartsData = {'hourChart' : setupChart('hourChart', "# Emails"),
 				'latencyChart' : setupChart('latencyChart', "Avg hours before reply"), 'rateChart': setupChart('rateChart', "Avg response rate")}

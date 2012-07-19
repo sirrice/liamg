@@ -33,12 +33,6 @@ function drawChart(data, chart) {
 }
 
 
-
-
-
-
-
-
 function getTopSendersList(id, start, end, jsonURL){
     
     var url = jsonURL;

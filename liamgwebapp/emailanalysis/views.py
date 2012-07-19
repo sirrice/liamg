@@ -295,6 +295,7 @@ def getjson(request, datatype):
     if datatype == 'topsenders':
         req = request.REQUEST
         start = req.get('start', None)
+        print start
         end = req.get ('end', None)
         top = 10       
         email = curruser.username
